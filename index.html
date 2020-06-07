@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Love Letter</title>
+        <meta charset="utf-8">
+
+        <link rel="stylesheet" href="src/styles.css"></link>
+    </head>
+
+    <body>
+        <button id="createButton"   onclick="app.createRoom()">Create room</button><br>
+        Room code: <input type="text" id="roomCodeInput" name="roomCodeInput"><br>
+        Name:      <input type="text" id="nameInput" name="nameInput"><br>
+        <button id="connectButton"   onclick="app.connect()">Connect</button>
+        <button id="startButton"     onclick="app.start()">Start</button><br>
+
+        <textarea rows="3" cols="120" id="card0"></textarea><button id="card0Button"   onclick="app.playCard(0)">Play</button><br>
+        <textarea rows="3" cols="120" id="card1"></textarea><button id="card1Button"   onclick="app.playCard(1)">Play</button><br>
+
+        <button id="refreshButton" onclick="app.getStatus()">Get Status</button><br>
+        <textarea rows="20" cols="120" id="responseText"></textarea>
+        <br>
+
+        <br>
+    </body>
+
+    <script type="text/javascript" src="app.js"></script>
+</html>
+
