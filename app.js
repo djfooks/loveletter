@@ -1,14 +1,30 @@
 var cardTypes = [];
 
 var cardDetailsMap = {
-    "GUARD":    { "value": 1, "name": "Guard",    "action": "Pick another player and guess their card type (you cannot guess \"Guard\"). If correct, the other player is eliminated." },
-    "PRIEST":   { "value": 2, "name": "Priest",   "action": "Pick another player to privately see their hand." },
-    "BARON":    { "value": 3, "name": "Baron",    "action": "Pick another player and privately compare hands. The player with the lower-strength hand is eliminated." },
-    "HANDMAID": { "value": 4, "name": "Handmaid", "action": "You cannot be targeted until your next turn." },
-    "PRINCE":   { "value": 5, "name": "Prince",   "action": "Pick any player (including youself) to discard their hand and draw a new one. If they discard the Princess they are eliminated." },
-    "KING":     { "value": 6, "name": "King",     "action": "Pick another player and trade hands with them." },
-    "COUNTESS": { "value": 7, "name": "Countess", "action": "If your other card is a King or Prince card, this card must be played." },
-    "PRINCESS": { "value": 8, "name": "Princess", "action": "If you play this card for any reason, you are eliminated from the round." },
+    "GUARD":    { "value": 1, "name": "Guard",
+        "shortAction": "Guess another players card (you cannot guess \"Guard\").",
+        "action": "Pick another player and guess their card type (you cannot guess \"Guard\"). If correct, the other player is eliminated." },
+    "PRIEST":   { "value": 2, "name": "Priest",
+        "shortAction": "Pick another player to privately see their hand.",
+        "action": "Pick another player to privately see their hand." },
+    "BARON":    { "value": 3, "name": "Baron",
+        "shortAction": "Pick another player and compare hands. Lowest value is eliminated.",
+        "action": "Pick another player and privately compare hands. The player with the lower-strength hand is eliminated." },
+    "HANDMAID": { "value": 4, "name": "Handmaid",
+        "shortAction": "You cannot be targeted until your next turn.",
+        "action": "You cannot be targeted until your next turn." },
+    "PRINCE":   { "value": 5, "name": "Prince",
+        "shortAction": "Pick any player to discard their hand and draw a new one.",
+        "action": "Pick any player (including youself) to discard their hand and draw a new one. If they discard the Princess they are eliminated." },
+    "KING":     { "value": 6, "name": "King",
+        "shortAction": "Pick another player and trade hands with them.",
+        "action": "Pick another player and trade hands with them." },
+    "COUNTESS": { "value": 7, "name": "Countess",
+        "shortAction": "Must be played if your other card is a King or Prince.",
+        "action": "If your other card is a King or Prince card, this card must be played." },
+    "PRINCESS": { "value": 8, "name": "Princess",
+        "shortAction": "If you play this card for any reason, you are eliminated.",
+        "action": "If you play this card for any reason, you are eliminated from the round." },
 };
 
 var orderedCards = ["GUARD", "PRIEST", "BARON", "HANDMAID", "PRINCE", "KING", "COUNTESS", "PRINCESS"];
@@ -66,6 +82,8 @@ var App = function ()
     this.playButtons.push(document.getElementById("card0Button"));
     this.playButtons.push(document.getElementById("card1Button"));
 
+    this.pickupDiv = document.getElementById("pickupDiv");
+
     this.playerButtons = [];
     for (i = 0; i < 4; i += 1)
     {
@@ -104,16 +122,22 @@ var App = function ()
 
     this.websocket = null;
 
-    this.hand = [];
-    this.players= [];
-    this.playerId = -1;
-    this.turnId = -1;
-    this.resetTurnState();
+    this.resetGame();
 
     if (name && roomCode)
     {
         this.connect();
     }
+};
+
+App.prototype.resetGame = function ()
+{
+    this.hand = [];
+    this.players= [];
+    this.playerStates = [];
+    this.playerId = -1;
+    this.turnId = -1;
+    this.resetTurnState();
 };
 
 App.prototype.resetTurnState = function ()
@@ -131,13 +155,18 @@ App.prototype.show = function (div)
     var i;
     for (i = 0; i < this.divs.length; i += 1)
     {
-        if (this.divs[i] == div)
+        var element = this.divs[i];
+        var show = element == div;
+        if (div.length && div.indexOf(element) !== -1)
+            show = true;
+
+        if (show)
         {
-            div.style.display = "block";
+            element.style.display = "block";
         }
         else
         {
-            this.divs[i].style.display = "none";
+            element.style.display = "none";
         }
     }
 };
@@ -180,6 +209,13 @@ App.prototype.connect = function ()
     };
 };
 
+App.prototype.disconnect = function ()
+{
+    this.websocket.close();
+    this.responseText.value = "Websocket disconnected";
+    this.resetGame();
+};
+
 App.prototype.onopen = function ()
 {
     this.responseText.value = "Websocket connected...";
@@ -198,6 +234,7 @@ App.prototype.onmessage = function (strData)
     switch(data.cmd) {
         case "START_CARD":
         {
+            this.playerId = data.playerId;
             this.addCard(data.pickup);
         }
         break;
@@ -206,20 +243,67 @@ App.prototype.onmessage = function (strData)
             this.addCard(data.pickup);
         }
         break;
-        case "STATE":
+        case "JOINED":
         {
-            this.hand = data.hand;
-            this.players = data.players;
-            this.playerId = data.playerId;
-            this.turnId = data.turn;
-            this.updateHandText();
+            this.players[data.index] = data.name;
             this.updatePlayersText();
-
-            this.interaction = data.interaction;
-            if (data.interaction)
+        }
+        break;
+        case "STATE":
+        case "START_GAME":
+        {
+            if (data.playerId !== undefined)
+                this.playerId = data.playerId;
+            this.players = data.players;
+            this.updatePlayersText();
+            if (data.gamestate == "LOGIN")
             {
+                this.show([]);
+            }
+            else if (data.gamestate == "PLAYING")
+            {
+                this.show(this.cardsDiv);
+                this.hand = data.hand || [];
+                this.turnId = data.turn;
+                this.playerStates = data.playerStates;
+                this.updateHandText();
+
+                this.interaction = data.interaction;
+                if (data.interaction)
+                {
+                    this.updateInteraction();
+                }
+            }
+        }
+        break;
+        case "PLAYED":
+        {
+            var cardStr = cardTypes[data.card];
+
+            if (data.target !== undefined)
+            {
+                this.interaction = { card: data.card, target: data.target };
+                if (data.guess)
+                    this.interaction["guess"] = data.guess;
                 this.updateInteraction();
             }
+        }
+        break;
+        case "REVEAL":
+        case "CONTINUE":
+        {
+            this.interaction = { card: data.card, target: data.target, revealedCard: data.revealedCard };
+            if (data.result)
+                this.interaction["result"] = data.result;
+            if (data.guess)
+                this.interaction["guess"] = data.guess;
+            this.updateInteraction();
+        }
+        break;
+        case "NEXT_TURN":
+        {
+            this.turnId = data.turn;
+            this.show(this.cardsDiv);
         }
         break;
     }
@@ -242,11 +326,29 @@ App.prototype.updateHandText = function ()
     var card;
     var details;
     var i;
+    if (!this.hand)
+    {
+        for (i = 0; i < 2; i += 1)
+        {
+            this.handText[i].value = "";
+        }
+        return;
+    }
+
     for (i = 0; i < this.hand.length; i += 1)
     {
         card = this.hand[i];
         details = cardDetailsMap[cardTypes[card]];
-        this.handText[i].value = details.name + " (" + details.value + ")\n" + details.action;
+        this.handText[i].value = details.name + " (" + details.value + ")\n" + details.shortAction;
+    }
+
+    if (this.hand.length == 2)
+    {
+        this.pickupDiv.style.display = "block";
+    }
+    else
+    {
+        this.pickupDiv.style.display = "none";
     }
 };
 
@@ -281,7 +383,7 @@ App.prototype.updatePlayersButtons = function ()
 App.prototype.playCard = function (cardId)
 {
     var card = this.hand[cardId];
-    if (!card)
+    if (card === undefined)
         return;
     var cardStr = cardTypes[card];
 
@@ -326,6 +428,19 @@ App.prototype.pickPlayer = function (pickedId)
     }
 };
 
+App.prototype.guess = function (guessCardIndex)
+{
+    if (guessCardIndex == -1) // back
+    {
+        this.updatePlayersButtons();
+        this.show(this.pickPlayerDiv);
+        return;
+    }
+
+    var cardStr = orderedCards[guessCardIndex];
+    this.sendPlayCard(this.playingCardId, this.pickedPlayer, cardStr);
+};
+
 App.prototype.sendPlayCard = function (cardId, target, guess)
 {
     var cmd;
@@ -352,6 +467,123 @@ App.prototype.updateInteraction = function ()
     var target = this.interaction.target;
     var isTarget = this.playerId == target;
     switch(cardTypes[this.interaction.card]) {
+        case "GUARD":
+        {
+            var guess = this.interaction.guess;
+            var guessName = cardDetailsMap[guess].name;
+            if (isTarget)
+            {
+                if (!this.interaction.result)
+                    this.msgReadCmd = "REVEAL";
+                this.setMsg(this.players[this.turnId] + ": Is guessing your card is a " + guessName + " " +
+                    (cardTypes[this.hand[0]] == guess ? "(oh no they're right!)" : "(ha they guessed wrong!)") + "...", this.interaction.result ? undefined : 'Respond');
+            }
+            else if (myTurn)
+            {
+                if (this.interaction.result)
+                {
+                    this.msgReadCmd = "CONTINUE";
+                    this.setMsg("You " + (this.interaction.result == "CORRECT_GUESS" ? "correctly" : "incorrectly") +
+                        " guessed that " + this.players[target] + " has a " + guessName + ".", 'End Turn');
+                }
+                else
+                {
+                    this.setMsg("You guessed that " + this.players[target] + " has a " + guessName + ". Waiting for " + this.players[target] + "...");
+                }
+            }
+            else
+            {
+                if (this.interaction.result)
+                {
+                    this.setMsg(this.players[this.turnId] + ": Played a Guard and " + (this.interaction.result == "CORRECT_GUESS" ? "correctly" : "incorrectly") +
+                        " guessed that " + this.players[target] + " has a " + guessName + ". Waiting for " + this.players[this.turnId] + "...");
+                }
+                else
+                {
+                    this.setMsg(this.players[this.turnId] + ": Played a Guard and guessed that " + this.players[target] + " has a " + guessName + ". Waiting for " + this.players[this.turnId] + "...");
+                }
+            }
+        }
+        break;
+        case "PRIEST":
+        {
+            if (isTarget)
+            {
+                this.msgReadCmd = "REVEAL";
+                this.setMsg(this.players[this.turnId] + ": Played a Priest and targeted you! You must reveal your " + getCardName(this.hand[0]) + " to them...", 'Reveal');
+            }
+            else if (myTurn)
+            {
+                var revealedCard = this.interaction.revealedCard;
+                if (revealedCard == undefined)
+                {
+                    this.setMsg(this.players[this.turnId] + ": You played a Priest. Waiting for " + this.players[target] + " to reveal their card...");
+                }
+                else
+                {
+                    this.msgReadCmd = "CONTINUE";
+                    this.setMsg(this.players[this.turnId] + ": You played a Priest. " + this.players[target] + " has a " + getCardName(revealedCard), "End Turn");
+                }
+            }
+            else
+            {
+                this.setMsg("Waiting for " + this.players[target]);
+            }
+        }
+        break;
+        case "BARON":
+        {
+            var revealedCard = this.interaction.revealedCard || this.interaction.discard;
+            if (revealedCard == undefined)
+            {
+                if (isTarget)
+                {
+                    this.msgReadCmd = "REVEAL";
+                    this.setMsg(this.players[this.turnId] + ": Challenged you with a Baron. Your " + getCardName(this.hand[0]) + " for their card...", 'Compare Cards');
+                }
+                else
+                {
+                    this.setMsg(this.players[this.turnId] + ": Played a Baron and has challenged " + this.players[target] + ".");
+                }
+            }
+            else
+            {
+                if (myTurn || isTarget)
+                {
+                    if (myTurn)
+                        this.msgReadCmd = "CONTINUE";
+
+                    if (this.interaction.result == "TIE")
+                    {
+                        this.setMsg("You both have a " + getCardName(revealedCard) + ". It's a tie! Both players keep thier cards.", myTurn ? 'End turn' : undefined);
+                    }
+                    else
+                    {
+                        if (this.playerId == this.interaction.loser)
+                        {
+                            this.setMsg(this.players[this.playerId == target ? this.turnId : target] + " has a " + getCardName(revealedCard) + ". You lose!", myTurn ? 'End turn' : undefined);
+                            this.playerStates[this.playerId].state = "DEAD";
+                        }
+                        else
+                        {
+                            this.setMsg(this.players[this.playerId == target ? this.turnId : target] + " has a " + getCardName(revealedCard) + ". You win!", myTurn ? 'End turn' : undefined);
+                        }
+                    }
+                }
+                else
+                {
+                    if (this.interaction.result == "TIE")
+                    {
+                        this.setMsg(this.players[this.turnId] + ": Played a Baron and challenged " + this.players[target] + ". It's a tie! Both players keep thier cards.");
+                    }
+                    else
+                    {
+                        this.setMsg(this.players[this.turnId] + ": Played a Baron and challenged " + this.players[target] + ". " + this.players[this.interaction.loser] + " lost!");
+                    }
+                }
+            }
+        }
+        break;
         case "PRINCE":
         {
             var revealedCard = this.interaction.revealedCard;
@@ -360,7 +592,7 @@ App.prototype.updateInteraction = function ()
                 if (isTarget)
                 {
                     this.msgReadCmd = "REVEAL";
-                    this.setMsg(this.players[this.turnId] + ": Used a Prince to swap your " + getCardName(this.hand[0]) + " for their card...", 'Swap Cards');
+                    this.setMsg(this.players[this.turnId] + ": Used a Prince to swap your " + getCardName(this.hand[0]) + " for ...", 'Swap Cards');
                 }
                 else
                 {
@@ -372,11 +604,15 @@ App.prototype.updateInteraction = function ()
                 if (myTurn)
                 {
                     this.msgReadCmd = "CONTINUE";
-                    this.setMsg("Swapped your " + getCardName(this.hand[this.playingCardId == 0 ? 1 : 0]) + " for " + getCardName(revealedCard), 'Continue');
+                    this.setMsg("Swapped your " + getCardName(this.hand[this.playingCardId == 0 ? 1 : 0]) + " for " + getCardName(revealedCard), 'End Turn');
+                    this.hand[this.playingCardId == 0 ? 1 : 0] = revealedCard;
+                    this.updateHandText();
                 }
                 else if (isTarget)
                 {
                     this.setMsg(this.players[this.turnId] + ": Used a Prince to swap your " + getCardName(this.hand[0]) + " for a " + getCardName(revealedCard));
+                    this.hand[0] = revealedCard;
+                    this.updateHandText();
                 }
                 else
                 {
@@ -400,13 +636,14 @@ App.prototype.setMsg = function (msgText, buttonText)
     {
         this.msgReadButton.style.display = "none";
     }
-    this.show(this.msgDiv);
+    this.show([this.cardsDiv, this.msgDiv]);
 };
 
 App.prototype.msgRead = function ()
 {
     this.send({"cmd": this.msgReadCmd});
     this.msgReadCmd = '';
+    this.msgReadButton.style.display = "none";
 };
 
 var app = new App();

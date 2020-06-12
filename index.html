@@ -12,16 +12,19 @@
         Room code: <input type="text" id="roomCodeInput" name="roomCodeInput"><br>
         Name:      <input type="text" id="nameInput" name="nameInput"><br>
         <button id="connectButton"   onclick="app.connect()">Connect</button>
+        <button id="disconnectButton"   onclick="app.disconnect()">Disconnect</button>
         <button id="startButton"     onclick="app.start()">Start</button><br>
 
         <hr>
         Players: <span id="playersSpan"></span>
 
-        <hr>
-        <div id="cardsDiv">
+        <div id="cardsDiv" style="display: none;">
+            <hr>
             Hand:<br>
-            <textarea rows="3" cols="120" id="card0Text"></textarea><button id="card0Button"   onclick="app.playCard(0)">Play</button><br>
-            <textarea rows="3" cols="120" id="card1Text"></textarea><button id="card1Button"   onclick="app.playCard(1)">Play</button><br>
+            <textarea rows="2" cols="70" id="card0Text"></textarea><button id="card0Button"   onclick="app.playCard(0)">Play</button><br>
+            <div id="pickupDiv" style="display: none;">
+                <textarea rows="2" cols="70" id="card1Text"></textarea><button id="card1Button"   onclick="app.playCard(1)">Play</button><br>
+            </div>
         </div>
 
         <div id="pickPlayerDiv" style="display: none;">
@@ -43,11 +46,12 @@
             <button id="guess5Button"        onclick="app.guess(5)">Guess 5</button><br>
             <button id="guess6Button"        onclick="app.guess(6)">Guess 6</button><br>
             <button id="guess7Button"        onclick="app.guess(7)">Guess 7</button><br>
-            #
+
             <button id="guessBackButton"     onclick="app.guess(-1)">Back</button><br>
         </div>
 
         <div id="msgDiv">
+            <hr>
             <span id="msgSpan"></span><br>
             <button id="msgReadButton"   onclick="app.msgRead()">Continue</button><br>
         </div>
