@@ -18,6 +18,11 @@
         <hr>
         Players: <span id="playersSpan"></span>
 
+        <div id="msgDiv">
+            <hr>
+            <textarea rows="6" cols="70" id="msgText"></textarea><button id="msgReadButton" style="display: none;"   onclick="app.msgRead()">Continue</button><br>
+        </div>
+
         <div id="cardsDiv" style="display: none;">
             <hr>
             Hand:<br>
@@ -38,21 +43,15 @@
 
         <div id="guessCardDiv" style="display: none;">
             Guess a card:<br>
-            <button id="guess0Button"        onclick="app.guess(0)">Guess 0</button><br>
             <button id="guess1Button"        onclick="app.guess(1)">Guess 1</button><br>
             <button id="guess2Button"        onclick="app.guess(2)">Guess 2</button><br>
             <button id="guess3Button"        onclick="app.guess(3)">Guess 3</button><br>
             <button id="guess4Button"        onclick="app.guess(4)">Guess 4</button><br>
             <button id="guess5Button"        onclick="app.guess(5)">Guess 5</button><br>
             <button id="guess6Button"        onclick="app.guess(6)">Guess 6</button><br>
+            <button id="guess7Button"        onclick="app.guess(7)">Guess 7</button><br>
 
             <button id="guessBackButton"     onclick="app.guess(-1)">Back</button><br>
-        </div>
-
-        <div id="msgDiv">
-            <hr>
-            <span id="msgSpan"></span><br>
-            <button id="msgReadButton"   onclick="app.msgRead()">Continue</button><br>
         </div>
 
         <hr>
