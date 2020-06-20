@@ -82,6 +82,9 @@ def handle_websocket(event, context):
         "PRINCESS": 8
     }
 
+    rounds_to_win_map = { 2: 7, 3: 5, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4 }
+    rounds_to_win = rounds_to_win_map[num_players]
+
     def send_to_all(data):
         for i in range(num_players):
             send_to_connection(players_data[i]["connectionId"], data, event)
@@ -190,7 +193,7 @@ def handle_websocket(event, context):
                 potential_winner = i
                 alive_count += 1
         if alive_count == 1:
-            return send_to_all({"cmd": "WINNER", "winner": potential_winner})
+            return round_completed([potential_winner])
 
         new_turn = -1
         for step in range(num_players - 1):
@@ -200,13 +203,17 @@ def handle_websocket(event, context):
             else:
                 break
 
-        send_to_all({"cmd": "NEXT_TURN", "turn": new_turn})
-        player_states[room_data["turn"]]["interaction"] = {}
-        if "target" in room_data["interaction"]:
-            player_states[room_data["interaction"]["target"]]["interaction"] = {}
         room_data["turn"] = new_turn
         room_data["interaction"] = {}
         room_data["target"] = -1
+        player_states[room_data["turn"]]["interaction"] = {}
+        if "target" in room_data["interaction"]:
+            player_states[room_data["interaction"]["target"]]["interaction"] = {}
+
+        if len(room_data["deck"]) == 1:
+            return round_completed(None)
+
+        send_to_all({"cmd": "NEXT_TURN", "turn": new_turn})
         player_states[new_turn]["state"] = "ALIVE" # clear SAFE state
 
         pickup = room_data["deck"][0]
@@ -215,6 +222,36 @@ def handle_websocket(event, context):
         response = {"cmd": "YOUR_TURN", "pickup": pickup}
         add_private_state(new_turn, response)
         send_to_connection(players_data[new_turn]["connectionId"], response, event)
+
+    def round_completed(winner):
+        if winner == None:
+            winner = []
+            highest_card = -1
+            for i in range(num_players):
+                card_value = card_value_map[card_types[player_states[i]["hand"]]]
+                if player_states[i]["state"] != "DEAD" and card_value >= highest_card:
+                    if card_value > highest_card:
+                        winner = [i]
+                        highest_card = card_value
+                    else:
+                        winner.append(i)
+
+            if len(winner) != 1:
+                tied = winner
+                winner = []
+                highest_total = 0
+                for x in tied:
+                    total = 0
+                    for card in player_states[i]["played"]:
+                        total += card_value_map[card_types[card]]
+                    if total > highest_total:
+                        highest_total = total
+                        winner = [x]
+                    elif total == highest_total:
+                        winner.append(x)
+
+        send_to_all({"cmd": "ROUND_COMPLETE", "winners": winner})
+
 
     def discard_card(player_index, card, played):
         player_states[player_index]["played"].append(card)
