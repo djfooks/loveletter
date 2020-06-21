@@ -134,12 +134,13 @@ def handle_websocket(event, context):
           UpdateExpression=set_string,
           ExpressionAttributeValues=lookup)
 
-    def start_game():
+    def start_game(is_new_round=False):
         if num_players <= 1:
             return send_to_connection(connection_id, {"ERROR": "NOT_ENOUGH_PLAYERS"}, event)
 
         cards = [i for i in range(16)]
-        #random.shuffle(cards)
+        random.shuffle(cards)
+
         #test
         def move_card(index, cardStr):
             found_index = index + [card_types[x] for x in cards[index:]].index(cardStr)
@@ -155,18 +156,17 @@ def handle_websocket(event, context):
         hands = cards[:num_players]
         del cards[:num_players]
 
-        turn = 0 #random.randint(0, num_players - 1)
+        turn = room_data["turn"] if is_new_round else 0  #random.randint(0, num_players - 1)
 
         room_data["gamestate"] = "PLAYING"
         room_data["deck"] = cards
         room_data["turn"] = turn
-        room_data["round"] = 0
+        room_data["round"] = (room_data["round"] + 1) if is_new_round else 0
         room_data["interaction"] = {}
         room_data["callback"] = {}
-        room_data["target"] = -1
 
         for i in range(num_players):
-            player_states[i] = {"state": "ALIVE", "wins": 0, "hand": hands[i], "played": []}
+            player_states[i] = {"state": "ALIVE", "wins": player_states[i]["wins"] if is_new_round else 0, "hand": hands[i], "played": []}
 
         first_pickup = cards[0]
         del cards[0]
@@ -174,7 +174,7 @@ def handle_websocket(event, context):
         update_room()
 
         response = get_public_state()
-        response["cmd"] = "START_GAME"
+        response["cmd"] = "NEXT_ROUND" if is_new_round else "START_GAME"
         send_to_all(response)
 
         for i in range(num_players):
@@ -205,7 +205,6 @@ def handle_websocket(event, context):
 
         room_data["turn"] = new_turn
         room_data["interaction"] = {}
-        room_data["target"] = -1
         player_states[room_data["turn"]]["interaction"] = {}
         if "target" in room_data["interaction"]:
             player_states[room_data["interaction"]["target"]]["interaction"] = {}
@@ -223,22 +222,23 @@ def handle_websocket(event, context):
         add_private_state(new_turn, response)
         send_to_connection(players_data[new_turn]["connectionId"], response, event)
 
-    def round_completed(winner):
-        if winner == None:
-            winner = []
+    def round_completed(round_winners):
+        final_cards = []
+        if round_winners == None:
+            round_winners = []
             highest_card = -1
             for i in range(num_players):
                 card_value = card_value_map[card_types[player_states[i]["hand"]]]
                 if player_states[i]["state"] != "DEAD" and card_value >= highest_card:
                     if card_value > highest_card:
-                        winner = [i]
+                        round_winners = [i]
                         highest_card = card_value
                     else:
-                        winner.append(i)
+                        round_winners.append(i)
 
-            if len(winner) != 1:
-                tied = winner
-                winner = []
+            if len(round_winners) != 1:
+                tied = round_winners
+                round_winners = []
                 highest_total = 0
                 for x in tied:
                     total = 0
@@ -246,12 +246,37 @@ def handle_websocket(event, context):
                         total += card_value_map[card_types[card]]
                     if total > highest_total:
                         highest_total = total
-                        winner = [x]
+                        round_winners = [x]
                     elif total == highest_total:
-                        winner.append(x)
+                        round_winners.append(x)
 
-        send_to_all({"cmd": "ROUND_COMPLETE", "winners": winner})
+            final_cards = [state["hand"] for state in player_states]
 
+        game_winners = []
+        game_winner = -1
+        highest_round_wins = 0
+        for x in round_winners:
+            player_states[x]["wins"] += 1
+            wins = player_states[x]["wins"]
+            if wins >= rounds_to_win:
+                if wins > highest_round_wins:
+                    game_winners = [x]
+                    highest_round_wins = wins
+                elif wins == highest_round_wins:
+                    game_winners.append(x)
+
+        room_data["turn"] = round_winners[random.randint(0, len(round_winners) - 1)]
+        room_data["interaction"] = {"state": "ROUND_COMPLETE", "roundWinners": round_winners, "finalCards": final_cards, "hiddenCard": room_data["deck"][0]}
+        if len(game_winners) == 1:
+            room_data["interaction"]["gameWinner"] = game_winners[0]
+
+        for i in range(num_players):
+            msg = get_public_state()
+            msg["cmd"] = "ROUND_COMPLETE"
+            add_private_state(i, msg)
+            send_to_connection(players_data[i]["connectionId"], msg, event)
+
+        update_room()
 
     def discard_card(player_index, card, played):
         player_states[player_index]["played"].append(card)
@@ -487,16 +512,25 @@ def handle_websocket(event, context):
         next_turn()
         update_room()
 
-    # TODO remove
-    if param_cmd == "RESTART":
-        return start_game()
+    # TODO set False!
+    debugging = True
     ## ^^^
+
+    if debugging and param_cmd == "RESTART":
+        return start_game()
 
     if "interaction" in room_data:
         room_data["interaction"] = json.loads(room_data["interaction"])
 
     if "callback" in room_data:
         room_data["callback"] = json.loads(room_data["callback"])
+
+    # TODO remove debugging only
+    if debugging and param_cmd == "FORCE_ROUND_END":
+        room_data["deck"] = room_data["deck"][0:2]
+        update_room()
+        return
+    ## ^^^
 
     if param_cmd == "GET":
         response = get_public_state()
@@ -515,6 +549,13 @@ def handle_websocket(event, context):
             if param_cmd == "CONTINUE":
                 if player_index == room_data["turn"] or player_states[room_data["turn"]]["state"] == "DEAD":
                     on_continue()
+                    return
+            return send_to_connection(connection_id, {"ERROR": "WAITING_FOR_INTERACTION"}, event)
+
+        if room_data["interaction"]["state"] == "ROUND_COMPLETE":
+            if param_cmd == "ROUND_COMPLETE":
+                if player_index == room_data["turn"]:
+                    start_game(True)
                     return
             return send_to_connection(connection_id, {"ERROR": "WAITING_FOR_INTERACTION"}, event)
 

@@ -13,10 +13,13 @@
         Name:      <input type="text" id="nameInput" name="nameInput"><br>
         <button id="connectButton"   onclick="app.connect()">Connect</button>
         <button id="disconnectButton"   onclick="app.disconnect()">Disconnect</button>
-        <button id="startButton"     onclick="app.start()">Start</button><br>
+        <div id="debugDiv">
+            <button id="startButton"     onclick="app.start()">Start</button><button id="forceRoundEndButton"     onclick="app.forceRoundEnd()">Force Round End</button><br>
+        </div>
 
         <hr>
-        Players: <span id="playersSpan"></span>
+        Players:<br>
+        <textarea rows="4" cols="70" id="playersText"></textarea>
 
         <div id="msgDiv">
             <hr>

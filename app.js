@@ -29,6 +29,8 @@ var cardDetailsMap = {
 
 var orderedCards = ["GUARD", "PRIEST", "BARON", "HANDMAID", "PRINCE", "KING", "COUNTESS", "PRINCESS"];
 
+var tokensToWinMap = [ -1, -1, 7, 5, 4, 4, 4, 4, 4 ];
+
 function init()
 {
     function addCardTypes(cardStr, count)
@@ -63,7 +65,7 @@ var App = function ()
     this.responseText = document.getElementById("responseText");
     this.responseText.value = "";
 
-    this.playersSpan = document.getElementById("playersSpan");
+    this.playersText = document.getElementById("playersText");
 
     this.msgText = document.getElementById("msgText");
     this.msgReadButton = document.getElementById("msgReadButton");
@@ -227,6 +229,11 @@ App.prototype.start = function ()
     this.send({ "cmd": "RESTART" });
 };
 
+App.prototype.forceRoundEnd = function ()
+{
+    this.send({ "cmd": "FORCE_ROUND_END" });
+};
+
 App.prototype.onmessage = function (strData)
 {
     this.responseText.value += "\n" + strData;
@@ -242,6 +249,7 @@ App.prototype.onmessage = function (strData)
         case "YOUR_TURN":
         {
             this.addCard(data.pickup);
+            this.updatePlayersText();
         }
         break;
         case "JOINED":
@@ -256,18 +264,18 @@ App.prototype.onmessage = function (strData)
         } // fall-through
         case "STATE":
         case "PLAYED":
+        case "ROUND_COMPLETE":
+        case "NEXT_ROUND":
         {
             if (data.playerId !== undefined)
                 this.playerId = data.playerId;
             this.players = data.players;
-            this.updatePlayersText();
             if (data.gamestate == "LOGIN")
             {
                 this.show([]);
             }
             else if (data.gamestate == "PLAYING")
             {
-                this.show(this.cardsDiv);
                 this.hand = data.hand || [];
                 this.turnId = data.turn;
                 this.playerStates = data.playerStates;
@@ -276,6 +284,7 @@ App.prototype.onmessage = function (strData)
                 this.interaction = data.interaction;
                 this.updateInteraction();
             }
+            this.updatePlayersText();
         }
         break;
         case "REVEALED":
@@ -293,6 +302,13 @@ App.prototype.onmessage = function (strData)
         case "DISCARD":
         {
             this.discard(data);
+        }
+        break;
+        case "ROUND_COMPLETE":
+        {
+            this.turnId = data.turn;
+            this.playerStates = data.playerStates;
+            this.updateInteraction();
         }
         break;
     }
@@ -326,6 +342,7 @@ App.prototype.nextTurn = function (data)
     this.show(this.cardsDiv);
     this.interaction = {};
     this.updateInteraction();
+    this.updatePlayersText();
 };
 
 App.prototype.send = function (jsonData)
@@ -379,22 +396,152 @@ App.prototype.updateHandText = function ()
     }
 };
 
+App.prototype.roundComplete = function ()
+{
+    this.show([]);
+    var i;
+    var j;
+    var roundWinners = this.interaction.roundWinners;
+    this.updatePlayersText();
+    var msgText = "";
+    if (roundWinners.length == 1)
+    {
+        msgText += this.players[roundWinners[0]] + " wins the round!\n";
+    }
+    else
+    {
+        for (i = 0; i < roundWinners.length; i += 1)
+            msgText += (i == 0 ? "" : ", ") + this.players[roundWinners[i]]
+        msgText += " tied for the win!\n";
+    }
+
+    var longestName = 12;
+    for (i = 0; i < this.players.length; i += 1)
+    {
+        longestName = Math.max(longestName, this.players[i].length);
+    }
+
+    for (i = 0; i < this.playerStates.length; i += 1)
+    {
+        msgText += this.players[i];
+        for (j = this.players[i].length; j < longestName + 4; j += 1)
+        {
+            msgText += " ";
+        }
+        if (this.playerStates[i].state !== "DEAD")
+        {
+            msgText += getCardName(this.interaction.finalCards[i]);
+        }
+        else
+        {
+            msgText += "ELIMINATED";
+        }
+        msgText += "\n";
+    }
+    msgText += "Hidden card was " + getCardName(this.interaction.hiddenCard);
+
+    this.setMsg(msgText, (this.turnId == this.playerId && this.interaction.gameWinner === undefined) ? "START NEW ROUND" : null)
+};
+
 App.prototype.updatePlayersText = function ()
 {
-    this.playersSpan.innerHTML = this.players.join(", ");
+    var roundWinners = this.interaction.roundWinners;
+    if (!roundWinners)
+        roundWinners = [];
+
+    var i;
+    var j;
+    var longestName = 12;
+    var wins;
+    var winner = -1;
+    var highestRoundsWon = 0;
+    var gotPlayerStates = this.playerStates && this.playerStates.length == this.players.length;
+    for (i = 0; i < this.players.length; i += 1)
+    {
+        longestName = Math.max(longestName, this.players[i].length);
+        if (gotPlayerStates)
+        {
+            wins = this.playerStates[i].wins;
+            if (wins > tokensToWinMap[this.players.length])
+            {
+                if (wins > highestRoundsWon)
+                {
+                    winner = i;
+                    highestRoundsWon = wins;
+                }
+                else if (wins == highestRoundsWon)
+                {
+                    winner = -1;
+                }
+            }
+        }
+    }
+
+    var playersMsg = "";
+    var first = true;
+    for (i = 0; i < this.players.length; i += 1)
+    {
+        if (!first)
+        {
+            playersMsg += "\n";
+        }
+        playersMsg += this.players[i];
+        for (j = this.players[i].length; j < longestName + 4; j += 1)
+        {
+            playersMsg += " ";
+        }
+        if (gotPlayerStates)
+        {
+            if (winner === i)
+            {
+                playersMsg += "GAME WINNER!  ";
+            }
+            else if (roundWinners.indexOf(i) !== -1)
+            {
+                playersMsg += "ROUND WINNER! ";
+            }
+            else if (winner === -1 && this.turnId == i)
+            {
+                playersMsg += "TURN          ";
+            }
+            else if (this.playerStates[i].state === "DEAD")
+            {
+                playersMsg += "ELIMINATED    ";
+            }
+            else if (this.playerStates[i].state === "SAFE")
+            {
+                playersMsg += "SAFE          ";
+            }
+            else
+            {
+                playersMsg += "              ";
+            }
+
+            for (j = 0; j < this.playerStates[i].wins; j += 1)
+            {
+                playersMsg += "I";
+            }
+        }
+        first = false;
+    }
+
+    this.playersText.value = playersMsg;
     this.updatePlayersButtons();
 };
 
 App.prototype.updatePlayersButtons = function ()
 {
+    var i;
     if (!this.anyValidTargets() && (this.playingCardStr != "PRINCE"))
     {
         this.playerButtons[0].innerHTML = "No Valid Target";
         this.playerButtons[0].style.display = "block";
-        return;
+        for (i = 1; i < 4; i += 1)
+        {
+            this.playerButtons[i].style.display = "none";
+        }
     }
 
-    var i;
     for (i = 0; i < 4; i += 1)
     {
         var show = i < this.players.length;
@@ -547,6 +694,13 @@ App.prototype.reveal = function ()
 
 App.prototype.updateInteraction = function ()
 {
+    if (this.interaction.state == "ROUND_COMPLETE")
+    {
+        this.roundComplete();
+        return;
+    }
+    this.show(this.cardsDiv);
+
     var myTurn = this.playerId == this.turnId;
     var turnName = this.players[this.turnId];
     var target = this.interaction.target;
@@ -630,7 +784,7 @@ App.prototype.updateInteraction = function ()
                 if (myTurn || isTarget)
                 {
                     msgText   += "YOUR CARD:      " + getCardName(this.getOtherCard()) + "\n";
-                    msgText   += "REVEALED CARD:  " + getCardName(this.interaction.revealedCard) + "\n";
+                    msgText   += "TARGET CARD:    " + getCardName(this.interaction.revealedCard) + "\n";
                 }
                 if (this.interaction.result == "TIE")
                 {
@@ -639,7 +793,7 @@ App.prototype.updateInteraction = function ()
                 else if (myTurn || isTarget)
                 {
                     var isLoser = this.playerId == this.interaction.loser;
-                    msgText   += "RESULT:         " + (isLoser ? "LOSER" : "WINNER");
+                    msgText   += "RESULT:         " + (isLoser ? "You lose" : "You win");
                 }
                 else
                 {
@@ -695,7 +849,7 @@ App.prototype.setMsg = function (msgText, buttonText)
     if (buttonText)
     {
         this.msgReadButton.innerHTML = buttonText;
-        this.msgReadButton.style.display = "block";
+        this.msgReadButton.style.display = "inline";
     }
     else
     {
