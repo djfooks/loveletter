@@ -70,11 +70,15 @@ var App = function ()
     this.msgText = document.getElementById("msgText");
     this.msgReadButton = document.getElementById("msgReadButton");
 
+    this.gameDiv = document.getElementById("gameDiv");
+    this.joinGameDiv = document.getElementById("joinGameDiv");
+    this.disconnectDiv = document.getElementById("disconnectDiv");
+    this.debugDiv = document.getElementById("debugDiv");
     this.cardsDiv = document.getElementById("cardsDiv");
     this.pickPlayerDiv = document.getElementById("pickPlayerDiv");
     this.guessCardDiv = document.getElementById("guessCardDiv");
     this.msgDiv = document.getElementById("msgDiv");
-    this.divs = [ this.cardsDiv, this.pickPlayerDiv, this.guessCardDiv ];
+    this.playingDivs = [ this.cardsDiv, this.pickPlayerDiv, this.guessCardDiv ];
 
     this.handText = [];
     this.handText.push(document.getElementById("card0Text"));
@@ -130,6 +134,10 @@ var App = function ()
     {
         this.connect();
     }
+    else
+    {
+        this.setVisualState("JOIN_ROOM");
+    }
 };
 
 App.prototype.resetGame = function ()
@@ -148,16 +156,16 @@ App.prototype.resetTurnState = function ()
     this.playingCard = -1;
     this.playingCardStr = '';
     this.pickedPlayer = -1;
-    this.interaction = null;
+    this.interaction = {};
     this.msgReadCmd = '';
 }
 
 App.prototype.show = function (div)
 {
     var i;
-    for (i = 0; i < this.divs.length; i += 1)
+    for (i = 0; i < this.playingDivs.length; i += 1)
     {
-        var element = this.divs[i];
+        var element = this.playingDivs[i];
         var show = element == div;
         if (div.length && div.indexOf(element) !== -1)
             show = true;
@@ -211,17 +219,27 @@ App.prototype.connect = function ()
     };
 };
 
+App.prototype.setVisualState = function (state)
+{
+    this.joinGameDiv.style.display = (state === "JOIN_ROOM") ? "block" : "none";
+    this.gameDiv.style.display = (state === "CONNECTED") ? "block" : "none";
+};
+
 App.prototype.disconnect = function ()
 {
     this.websocket.close();
     this.responseText.value = "Websocket disconnected";
+
+    this.localStorage.removeItem('room');
     this.resetGame();
+    this.setVisualState("JOIN_ROOM");
 };
 
 App.prototype.onopen = function ()
 {
     this.responseText.value = "Websocket connected...";
     this.send({ "cmd": "GET" });
+    this.setVisualState("CONNECTED");
 };
 
 App.prototype.start = function ()
@@ -250,6 +268,7 @@ App.prototype.onmessage = function (strData)
         {
             this.addCard(data.pickup);
             this.updatePlayersText();
+            this.updatePlayButtons();
         }
         break;
         case "JOINED":
@@ -285,6 +304,7 @@ App.prototype.onmessage = function (strData)
                 this.updateInteraction();
             }
             this.updatePlayersText();
+            this.updatePlayButtons();
         }
         break;
         case "REVEALED":
@@ -430,7 +450,14 @@ App.prototype.roundComplete = function ()
         }
         if (this.playerStates[i].state !== "DEAD")
         {
-            msgText += getCardName(this.interaction.finalCards[i]);
+            if (this.interaction.finalCards.length > 0)
+            {
+                msgText += getCardName(this.interaction.finalCards[i]);
+            }
+            else
+            {
+                msgText += "ROUND WINNER!";
+            }
         }
         else
         {
@@ -462,7 +489,7 @@ App.prototype.updatePlayersText = function ()
         if (gotPlayerStates)
         {
             wins = this.playerStates[i].wins;
-            if (wins > tokensToWinMap[this.players.length])
+            if (wins >= tokensToWinMap[this.players.length])
             {
                 if (wins > highestRoundsWon)
                 {
@@ -502,7 +529,7 @@ App.prototype.updatePlayersText = function ()
             }
             else if (winner === -1 && this.turnId == i)
             {
-                playersMsg += "TURN          ";
+                playersMsg += "TURN...       ";
             }
             else if (this.playerStates[i].state === "DEAD")
             {
@@ -540,6 +567,7 @@ App.prototype.updatePlayersButtons = function ()
         {
             this.playerButtons[i].style.display = "none";
         }
+        return;
     }
 
     for (i = 0; i < 4; i += 1)
@@ -562,6 +590,13 @@ App.prototype.updatePlayersButtons = function ()
             this.playerButtons[i].style.display = "none";
         }
     }
+};
+
+App.prototype.updatePlayButtons = function (forceDisable)
+{
+    var showButtons = !forceDisable && this.turnId == this.playerId && !this.interaction.state;
+    this.playButtons[0].style.display = showButtons ? "inline" : "none";
+    this.playButtons[1].style.display = showButtons ? "inline" : "none";
 };
 
 App.prototype.playCard = function (cardId)
@@ -631,6 +666,7 @@ App.prototype.guess = function (guessCardIndex)
 
     var cardStr = orderedCards[guessCardIndex];
     this.sendPlayCard(this.playingCardId, this.pickedPlayer, cardStr);
+    this.updatePlayButtons(true);
 };
 
 App.prototype.sendPlayCard = function (cardId, target, guess)
