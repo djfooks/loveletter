@@ -1,28 +1,28 @@
 var cardTypes = [];
 
 var cardDetailsMap = {
-    "GUARD":    { "value": 1, "name": "Guard",
+    "GUARD":    { "value": 1, "name": "Guard", "numInDeck": 5,
         "shortAction": "Guess another players card (you cannot guess \"Guard\").",
         "action": "Pick another player and guess their card type (you cannot guess \"Guard\"). If correct, the other player is eliminated." },
-    "PRIEST":   { "value": 2, "name": "Priest",
+    "PRIEST":   { "value": 2, "name": "Priest", "numInDeck": 2,
         "shortAction": "Pick another player to privately see their hand.",
         "action": "Pick another player to privately see their hand." },
-    "BARON":    { "value": 3, "name": "Baron",
+    "BARON":    { "value": 3, "name": "Baron", "numInDeck": 2,
         "shortAction": "Pick another player and compare hands. Lowest value is eliminated.",
         "action": "Pick another player and privately compare hands. The player with the lower-strength hand is eliminated." },
-    "HANDMAID": { "value": 4, "name": "Handmaid",
+    "HANDMAID": { "value": 4, "name": "Handmaid", "numInDeck": 2,
         "shortAction": "You cannot be targeted until your next turn.",
         "action": "You cannot be targeted until your next turn." },
-    "PRINCE":   { "value": 5, "name": "Prince",
+    "PRINCE":   { "value": 5, "name": "Prince", "numInDeck": 2,
         "shortAction": "Pick any player to discard their hand and draw a new one.",
         "action": "Pick any player (including youself) to discard their hand and draw a new one. If they discard the Princess they are eliminated." },
-    "KING":     { "value": 6, "name": "King",
+    "KING":     { "value": 6, "name": "King", "numInDeck": 1,
         "shortAction": "Pick another player and trade hands with them.",
         "action": "Pick another player and trade hands with them." },
-    "COUNTESS": { "value": 7, "name": "Countess",
+    "COUNTESS": { "value": 7, "name": "Countess", "numInDeck": 1,
         "shortAction": "Must be played if your other card is a King or Prince.",
         "action": "If your other card is a King or Prince card, this card must be played." },
-    "PRINCESS": { "value": 8, "name": "Princess",
+    "PRINCESS": { "value": 8, "name": "Princess", "numInDeck": 1,
         "shortAction": "If you play this card for any reason, you are eliminated.",
         "action": "If you play this card for any reason, you are eliminated from the round." },
 };
@@ -33,23 +33,22 @@ var tokensToWinMap = [ -1, -1, 7, 5, 4, 4, 4, 4, 4 ];
 
 function init()
 {
-    function addCardTypes(cardStr, count)
+    function addCardTypes(cardStr)
     {
         var i;
+        var count = cardDetailsMap[cardStr].numInDeck;
         for (i = 0; i < count; i += 1)
         {
             cardTypes.push(cardStr);
         }
     }
 
-    addCardTypes('GUARD', 5);
-    addCardTypes('PRIEST', 2);
-    addCardTypes('BARON', 2);
-    addCardTypes('HANDMAID', 2);
-    addCardTypes('PRINCE', 2);
-    addCardTypes('KING', 1);
-    addCardTypes('COUNTESS', 1);
-    addCardTypes('PRINCESS', 1);
+    var i;
+    for (i = 0; i < orderedCards.length; i += 1)
+    {
+        addCardTypes(orderedCards[i]);
+        cardDetailsMap[orderedCards[i]].cardType = orderedCards[i];
+    }
 }
 init();
 
@@ -60,17 +59,24 @@ function getCardName(card)
 
 var App = function ()
 {
+    window.onerror = this.onError.bind(this);
+    this.debugText = "";
+
     var i;
 
     this.responseText = document.getElementById("responseText");
     this.responseText.value = "";
 
+    this.roomSpan = document.getElementById("roomSpan");
     this.playersText = document.getElementById("playersText");
 
     this.msgText = document.getElementById("msgText");
     this.msgReadButton = document.getElementById("msgReadButton");
 
+    this.toggleHelpButton = document.getElementById("toggleHelpButton");
     this.gameDiv = document.getElementById("gameDiv");
+    this.cardsHelpDiv = document.getElementById("cardsHelpDiv");
+    this.mainDiv = document.getElementById("mainDiv");
     this.joinGameDiv = document.getElementById("joinGameDiv");
     this.disconnectDiv = document.getElementById("disconnectDiv");
     this.debugDiv = document.getElementById("debugDiv");
@@ -101,6 +107,12 @@ var App = function ()
     {
         this.guessButtons.push(document.getElementById("guess" + i + "Button"));
         this.guessButtons[i - 1].innerHTML = cardDetailsMap[orderedCards[i]].name;
+    }
+
+    this.cardHelpTexts = [];
+    for (i = 0; i < 8; i += 1)
+    {
+        this.cardHelpTexts.push(document.getElementById("cardHelp" + i + "Text"));
     }
 
     this.localStorage = window.localStorage;
@@ -138,7 +150,68 @@ var App = function ()
     {
         this.setVisualState("JOIN_ROOM");
     }
+
+    this.updateCardHelp();
+    this.showingCardHelp = false;
 };
+
+App.prototype.toggleView = function ()
+{
+    this.showingCardHelp = !this.showingCardHelp;
+    if (this.showingCardHelp)
+    {
+        this.cardsHelpDiv.style.display = "block";
+        this.mainDiv.style.display = "none";
+        this.toggleHelpButton.innerHTML = "Back";
+    }
+    else
+    {
+        this.cardsHelpDiv.style.display = "none";
+        this.mainDiv.style.display = "block";
+        this.toggleHelpButton.innerHTML = "Cards Descriptions";
+    }
+};
+
+App.prototype.getCardPlayedCount = function (cardStr)
+{
+    var i;
+    var j;
+    var total = 0;
+    for (i = 0; i < this.playerStates.length; i += 1)
+    {
+        var played = this.playerStates[i].played;
+        for (j = 0; j < played.length; j += 1)
+        {
+            if (cardTypes[played[j]] == cardStr)
+                total += 1;
+        }
+    }
+    return total;
+};
+
+App.prototype.updateCardHelp = function ()
+{
+    var i;
+    var j;
+    var padding = 50;
+    for (i = 0; i < 8; i += 1)
+    {
+        var details = cardDetailsMap[orderedCards[i]];
+        var played = this.getCardPlayedCount(details.cardType);
+        var topLineText = details.name + " (" + details.value + ")";
+        for (; topLineText.length < padding;)
+        {
+            topLineText += " ";
+        }
+
+        for (j = 0; j < details.numInDeck; j += 1)
+        {
+            topLineText += (j < played) ? "I" : "-";
+        }
+        topLineText += "\n";
+        this.cardHelpTexts[i].value = topLineText + details.shortAction;
+    }
+}
 
 App.prototype.resetGame = function ()
 {
@@ -204,11 +277,16 @@ App.prototype.createRoom = function ()
     xhr.send();
 };
 
+App.prototype.getRoomCode = function ()
+{
+    return this.roomCodeInput.value.toUpperCase();
+};
+
 App.prototype.connect = function ()
 {
     this.localStorage.setItem('name', this.nameInput.value);
-    this.localStorage.setItem('room', this.roomCodeInput.value);
-    this.websocket = new WebSocket("wss://u72xrovjcj.execute-api.eu-west-2.amazonaws.com/test?room=" + this.roomCodeInput.value + "&key=" + this.key + "&name=" + this.nameInput.value);
+    this.localStorage.setItem('room', this.getRoomCode());
+    this.websocket = new WebSocket("wss://u72xrovjcj.execute-api.eu-west-2.amazonaws.com/test?room=" + this.getRoomCode() + "&key=" + this.key + "&name=" + this.nameInput.value);
 
     var that = this;
     this.websocket.onopen = function (event) {
@@ -237,6 +315,7 @@ App.prototype.disconnect = function ()
 
 App.prototype.onopen = function ()
 {
+    this.roomSpan.innerHTML = this.getRoomCode();
     this.responseText.value = "Websocket connected...";
     this.send({ "cmd": "GET" });
     this.setVisualState("CONNECTED");
@@ -266,6 +345,8 @@ App.prototype.onmessage = function (strData)
         case "PICKUP":
         case "YOUR_TURN":
         {
+            // clear your SAFE state
+            this.playerStates[this.playerId]["state"] = "ALIVE";
             this.addCard(data.pickup);
             this.updatePlayersText();
             this.updatePlayButtons();
@@ -305,6 +386,7 @@ App.prototype.onmessage = function (strData)
             }
             this.updatePlayersText();
             this.updatePlayButtons();
+            this.updateCardHelp();
         }
         break;
         case "REVEALED":
@@ -354,6 +436,7 @@ App.prototype.discard = function (data)
     {
         playerState.played.push(data.card);
     }
+    this.updateCardHelp();
 };
 
 App.prototype.nextTurn = function (data)
@@ -367,7 +450,7 @@ App.prototype.nextTurn = function (data)
 
 App.prototype.send = function (jsonData)
 {
-    jsonData["room"] = this.roomCodeInput.value;
+    jsonData["room"] = this.getRoomCode();
     this.websocket.send(JSON.stringify(jsonData));
 };
 
@@ -676,7 +759,7 @@ App.prototype.sendPlayCard = function (cardId, target, guess)
         cmd = "PLAY_HAND";
     else if (cardId == 1)
         cmd = "PLAY_PICKUP";
-    var msg = { "room": this.roomCodeInput.value, "cmd": cmd };
+    var msg = { "room": this.getRoomCode(), "cmd": cmd };
     if (target != undefined)
         msg["target"] = target;
     if (guess != undefined)
@@ -899,6 +982,17 @@ App.prototype.msgRead = function ()
     this.send({"cmd": this.interaction.state});
     this.msgReadCmd = '';
     this.msgReadButton.style.display = "none";
+};
+
+App.prototype.debugInfo = function debugInfo(str)
+{
+    this.debugMsg += str + "<br>";
+    document.getElementById("debugText").innerHTML = this.debugMsg;
+};
+
+App.prototype.onError = function onError(message, source, lineno, colno, error)
+{
+    this.debugInfo("Error: " + source + ":" + lineno + " " + message);
 };
 
 var app = new App();
