@@ -73,6 +73,8 @@ var App = function ()
     this.msgText = document.getElementById("msgText");
     this.msgReadButton = document.getElementById("msgReadButton");
 
+    this.startButton = document.getElementById("startButton");
+
     this.toggleHelpButton = document.getElementById("toggleHelpButton");
     this.gameDiv = document.getElementById("gameDiv");
     this.cardsHelpDiv = document.getElementById("cardsHelpDiv");
@@ -323,7 +325,14 @@ App.prototype.onopen = function ()
 
 App.prototype.start = function ()
 {
+    this.send({ "cmd": "START" });
+    this.startButton.style.display = "none";
+};
+
+App.prototype.restart = function ()
+{
     this.send({ "cmd": "RESTART" });
+    this.startButton.style.display = "none";
 };
 
 App.prototype.forceRoundEnd = function ()
@@ -360,6 +369,7 @@ App.prototype.onmessage = function (strData)
         break;
         case "START_GAME":
         {
+            this.setMsg("");
             this.responseText.value = strData;
         } // fall-through
         case "STATE":
@@ -373,6 +383,8 @@ App.prototype.onmessage = function (strData)
             if (data.gamestate == "LOGIN")
             {
                 this.show([]);
+                if (this.playerId == 0)
+                    this.startButton.style.display = "block";
             }
             else if (data.gamestate == "PLAYING")
             {

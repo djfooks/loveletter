@@ -15,8 +15,9 @@
             <button id="connectButton"   onclick="app.connect()">Connect</button>
         </div>
 
-        <button id="toggleHelpButton"   onclick="app.toggleView()">Cards Descriptions</button>
         <div id="gameDiv">
+            Room: <span id="roomSpan"></span><br>
+            <button id="toggleHelpButton"   onclick="app.toggleView()">Cards Descriptions</button>
             <div id="cardsHelpDiv" style="display: none;">
                 <textarea rows="2" cols="70" id="cardHelp0Text" readonly></textarea><br>
                 <textarea rows="2" cols="70" id="cardHelp1Text" readonly></textarea><br>
@@ -29,9 +30,10 @@
             </div>
 
             <div id="mainDiv">
-                Room: <span id="roomSpan"></span><br>
                 Players:<br>
                 <textarea rows="4" cols="70" id="playersText" readonly></textarea>
+
+                <button id="startButton"  style="display: none;"    onclick="app.start()">Start</button>
 
                 <div id="msgDiv">
                     <textarea rows="6" cols="70" id="msgText" readonly></textarea><button id="msgReadButton" style="display: none;"   onclick="app.msgRead()">Continue</button><br>
@@ -75,7 +77,7 @@
             </div>
 
             <div id="debugDiv" style="display: none;">
-                <button id="startButton"     onclick="app.start()">Start</button><button id="forceRoundEndButton"     onclick="app.forceRoundEnd()">Force Round End</button><br>
+                <button id="restartButton"     onclick="app.restart()">Start</button><button id="forceRoundEndButton"     onclick="app.forceRoundEnd()">Force Round End</button><br>
             </div>
 
             <div id="responseDiv" style="display: none;">
