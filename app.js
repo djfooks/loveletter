@@ -560,7 +560,8 @@ App.prototype.roundComplete = function ()
         }
         msgText += "\n";
     }
-    msgText += "Hidden card was " + getCardName(this.interaction.hiddenCard);
+    if (this.interaction.hiddenCard !== null)
+        msgText += "Hidden card was " + getCardName(this.interaction.hiddenCard);
 
     this.setMsg(msgText, (this.turnId == this.playerId && this.interaction.gameWinner === undefined) ? "START NEW ROUND" : null)
 };
@@ -919,7 +920,7 @@ App.prototype.updateInteraction = function ()
                 }
                 if (this.interaction.result == "TIE")
                 {
-                    msgText   += "RESULT:         TIE";
+                    msgText   += "RESULT:         TIE\n";
                 }
                 else if (myTurn || isTarget)
                 {
@@ -928,7 +929,7 @@ App.prototype.updateInteraction = function ()
                 }
                 else
                 {
-                    msgText   += "LOSER:          " + this.players[this.interaction.loser];
+                    msgText   += "LOSER:          " + this.players[this.interaction.loser] + "\n";
                     msgText   += "LOSING CARD:    " + getCardName(this.interaction.discard);
                 }
             }
