@@ -371,34 +371,21 @@ App.prototype.onmessage = function (strData)
         {
             this.setMsg("");
             this.responseText.value = strData;
-        } // fall-through
+            this.gotFullState(data);
+        }
+        break;
         case "STATE":
         case "PLAYED":
         case "ROUND_COMPLETE":
         case "NEXT_ROUND":
         {
-            if (data.playerId !== undefined)
-                this.playerId = data.playerId;
-            this.players = data.players;
-            if (data.gamestate == "LOGIN")
-            {
-                this.show([]);
-                if (this.playerId == 0)
-                    this.startButton.style.display = "block";
-            }
-            else if (data.gamestate == "PLAYING")
-            {
-                this.hand = data.hand || [];
-                this.turnId = data.turn;
-                this.playerStates = data.playerStates;
-                this.updateHandText();
-
-                this.interaction = data.interaction;
-                this.updateInteraction();
-            }
-            this.updatePlayersText();
-            this.updatePlayButtons();
-            this.updateCardHelp();
+            this.gotFullState(data);
+        }
+        break;
+        case "END_TURN":
+        {
+            this.endTurn();
+            this.gotFullState(data);
         }
         break;
         case "REVEALED":
@@ -427,6 +414,32 @@ App.prototype.onmessage = function (strData)
         break;
     }
 };
+
+App.prototype.gotFullState = function (data)
+{
+    if (data.playerId !== undefined)
+        this.playerId = data.playerId;
+    this.players = data.players;
+    if (data.gamestate == "LOGIN")
+    {
+        this.show([]);
+        if (this.playerId == 0)
+            this.startButton.style.display = "block";
+    }
+    else if (data.gamestate == "PLAYING")
+    {
+        this.hand = data.hand || [];
+        this.turnId = data.turn;
+        this.playerStates = data.playerStates;
+        this.updateHandText();
+
+        this.interaction = data.interaction;
+        this.updateInteraction();
+    }
+    this.updatePlayersText();
+    this.updatePlayButtons();
+    this.updateCardHelp();
+}
 
 App.prototype.discard = function (data)
 {
@@ -822,6 +835,10 @@ App.prototype.reveal = function ()
         this.hand[0] = this.interaction.swappedFor;
         this.updateHandText();
     }
+};
+
+App.prototype.endTurn = function ()
+{
 };
 
 App.prototype.updateInteraction = function ()
