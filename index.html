@@ -4,35 +4,28 @@
         <title>Love Letter</title>
         <meta charset="utf-8">
 
-        <link rel="stylesheet" href="src/styles.css"></link>
+        <link rel="stylesheet" href="styles.css"></link>
     </head>
 
-    <body style="background-color:lightgrey;">
-
+    <body>
         <br>
         <div>
-            <div style="width: 200px; float: left;">
-                <div style="text-align: center; width: 180px; line-height: 10px;">
-                    <div style="border-radius: 25px; background-color:white; padding: 5px; width: 170px; height: 230px; box-shadow:5px 5px 5px grey; border-style: solid; border-color: darkblue;">
-                        <div style="background-image:url('https://cf.geekdo-images.com/imagepage/img/Ziu2KltPsfSvAeKC_k25MPOX8uw=/fit-in/900x600/filters:no_upscale()/pic2364856.png'); width:150px; height:130px; background-position:-200px -30px; margin: 0px 6px;">&nbsp;</div>
-                        <div style="margin: 0px 6px; width:150px; height:100px; font-family: Arial, Helvetica, sans-serif; font-size: 14px; text-align: center;
-              display: flex;
-              justify-content: center;
-              align-items: center; line-height: 15px;">Guess another players card (you cannot guess "Guard").</div>
+            <div class="cardLeft">
+                <div class="cardAndButton">
+                    <div class="cardBorder cardBorderGUARD">
+                        <div class="cardImg cardImgGUARD"></div>
+                        <div class="cardText">Guess another players card (you cannot guess "Guard").</div>
                     </div>
                     <br>
                     <button id="Xcard0Button"   onclick="app.playCard(0)">PLAY</button><br>
                 </div>
             </div>
 
-            <div style="margin-left: 200px;">
-                <div style="text-align: center; width: 180px; line-height: 10px;">
-                    <div style="border-radius: 25px; background-color:white; padding: 5px; width: 170px; height: 230px; box-shadow:5px 5px 5px grey; border-style: solid; border-color: darkblue;">
-                        <div style="background-image:url('https://cf.geekdo-images.com/imagepage/img/Ziu2KltPsfSvAeKC_k25MPOX8uw=/fit-in/900x600/filters:no_upscale()/pic2364856.png'); width:150px; height:130px; background-position:-200px -30px; margin: 0px 6px;">&nbsp;</div>
-                        <div style="margin: 0px 6px; width:150px; height:100px; font-family: Arial, Helvetica, sans-serif; font-size: 14px; text-align: center;
-              display: flex;
-              justify-content: center;
-              align-items: center; line-height: 15px;">Guess another players card (you cannot guess "Guard").</div>
+            <div class="cardRight">
+                <div class="cardAndButton">
+                    <div class="cardBorder cardBorderGUARD">
+                        <div class="cardImg cardImgGUARD"></div>
+                        <div class="cardText">Guess another players card (you cannot guess "Guard").</div>
                     </div>
                     <br>
                     <button id="Xcard0Button"   onclick="app.playCard(0)">PLAY</button><br>

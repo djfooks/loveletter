@@ -1,0 +1,61 @@
+
+body
+{
+    background-color:lightgrey;
+}
+
+.cardLeft
+{
+    width: 200px;
+    float: left;
+}
+
+.cardRight
+{
+    margin-left: 200px;
+}
+
+.cardAndButton
+{
+    text-align: center;
+    width: 180px;
+    line-height: 10px;
+}
+
+.cardBorder
+{
+    border-radius: 25px;
+    background-color:white;
+    padding: 5px;
+    width: 170px;
+    height: 230px;
+    box-shadow:5px 5px 5px grey;
+    border-style: solid;
+}
+
+.cardText
+{
+    margin: 0px 6px;
+    width: 150px;
+    height: 100px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 15px;
+}
+
+.cardImg
+{
+    background-image: url('https://cf.geekdo-images.com/imagepage/img/Ziu2KltPsfSvAeKC_k25MPOX8uw=/fit-in/900x600/filters:no_upscale()/pic2364856.png');
+    width: 150px;
+    height: 130px;
+    margin: 0px 6px;
+}
+
+.cardImgGUARD { background-position:-200px -30px; }
+
+.cardBorderGUARD { border-color: #b4872f; }
+
