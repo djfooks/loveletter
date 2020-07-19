@@ -5,41 +5,179 @@
         <meta charset="utf-8">
 
         <link rel="stylesheet" href="styles.css"></link>
+
+        <meta name="viewport" content="width=device-width, height=device-height, user-scalable=no" />
+
+        <script type="text/javascript" src="src/carddata.js"></script>
+        <script type="text/javascript" src="src/helptemplate.js"></script>
     </head>
 
     <body>
         <br>
-        <div>
-            <div class="cardLeft">
-                <div class="cardAndButton">
-                    <div class="cardBorder cardBorderGUARD">
-                        <div class="cardImg cardImgGUARD"></div>
-                        <div class="cardText">Guess another players card (you cannot guess "Guard").</div>
-                    </div>
-                    <br>
-                    <button id="Xcard0Button"   onclick="app.playCard(0)">PLAY</button><br>
+        <div class="playBox">
+            <div class="connectBox hidden" id="joinGameDiv">
+                <div class="center">
+                    <button id="createRoomButton" class="button" onclick="app.createRoom()">Create room</button><br>
+                </div>
+                <div class="inputPair">
+                    <span class="inputLabel">Room</span><input type="text" class="inputBox uppercase" id="roomCodeInput" name="roomCodeInput"><br>
+                </div>
+                <div class="inputPair">
+                    <span class="inputLabel">Name</span><input type="text" class="inputBox"           id="nameInput"     name="nameInput"><br>
+                </div>
+                <div class="center">
+                    <button id="connectButton" class="button" onclick="app.connect()">Connect</button>
                 </div>
             </div>
 
-            <div class="cardRight">
-                <div class="cardAndButton">
-                    <div class="cardBorder cardBorderGUARD">
-                        <div class="cardImg cardImgGUARD"></div>
-                        <div class="cardText">Guess another players card (you cannot guess "Guard").</div>
+            <div id="gameDiv">
+                <div class="cardHelp hidden">
+                    <div id="cardHelpDiv0"></div>
+                    <div id="cardHelpDiv1"></div>
+                    <div id="cardHelpDiv2"></div>
+                    <div id="cardHelpDiv3"></div>
+                    <div id="cardHelpDiv4"></div>
+                    <div id="cardHelpDiv5"></div>
+                    <div id="cardHelpDiv6"></div>
+                    <div id="cardHelpDiv7"></div>
+                    <div class="center">
+                        <button id="helpBackButton" class="button"   onclick="app.helpBack(0)">Back</button>
                     </div>
-                    <br>
-                    <button id="Xcard0Button"   onclick="app.playCard(0)">PLAY</button><br>
+                </div>
+
+                <div class="cardLeft hidden">
+                    <div class="cardAndButton">
+                        <div class="cardBorder cardBorderPRINCE">
+                            <div class="cardImg cardImgPRINCE"></div>
+                            <div class="cardText">Pick another player to privately see their hand.</div>
+                        </div>
+                        <br>
+                        <button id="Xcard0Button"  class="button" onclick="app.playCard(0)">Play</button><br>
+                    </div>
+                </div>
+
+                <div class="cardRight hidden">
+                    <div class="cardAndButton">
+                        <div class="cardBorder cardBorderBARON">
+                            <div class="cardImg cardImgBARON"></div>
+                            <div class="cardText">Guess another players card (you cannot guess "Guard").</div>
+                        </div>
+                        <br>
+                        <button id="Xcard0Button"  class="button" onclick="app.playCard(0)">Play</button><br>
+                    </div>
+                </div>
+
+                <div class="playerInfoBox">
+                    <div id="playerInfoTemplate" class="playerInfo playerInfo0">
+                        <span class="playerNameWrapper">
+                            <span class="playerNameSpan" id="playerName#">Dave</span>
+                        </span>
+                        <span id="playerStatusSpan">
+                            <img class="arrowImg" src="images/arrow.svg"></img>
+                        </span>
+                        <span class="playerTokensSpan" id="playerTokens#">
+                            <img class="gemImg" src="images/gem0.svg"></img>
+                            <img class="gemImg" src="images/gem1.svg"></img>
+                            <img class="gemImg" src="images/gem2.svg"></img>
+                            <img class="gemImg" style="filter: hue-rotate(180deg);" src="images/gem2.svg"></img>
+                            <img class="gemImg" src="images/gem0.svg"></img>
+                        </span>
+
+                        <div class="playedDiv" id="playedDiv#">
+                            Played <span class="cardName cardNameGUARD" id="playedCardSpan#">GUARD (1)</span>
+                        </div>
+                        <span class="targetDiv" id="targetDiv#">
+                            target <span class="playerNameSpan" id="targetNameSpan#">Elephant</span>
+                        </span>
+                        <span class="guessDiv" id="guessDiv#">
+                            guessed <span class="cardName cardNameBARON" id="guessedCardSpan#">BARON (3)</span>
+                        </span>
+                    </div>
+
+                    <div id="playerInfoTemplate" class="playerInfo playerInfo1">
+                        <span class="playerNameWrapper">
+                            <span class="playerNameSpan" id="playerName#">Dave</span>
+                        </span>
+                        <span id="playerStatusSpan" class="invisible">
+                            <img class="arrowImg" src=""></img>
+                        </span>
+                        <span class="playerTokensSpan" id="playerTokens#">
+                            <img class="gemImg" src="images/gem1.svg"></img>
+                            <img class="gemImg" src="images/gem2.svg"></img><br>
+                            <img class="gemImg" style="filter: hue-rotate(280deg);" src="images/gem0.svg"></img>
+                        </span>
+
+                        <div class="playedDiv" id="playedDiv#">
+                            Played a <span class="cardName cardNameGUARD" id="playedCardSpan#">GUARD (1)</span>
+                        </div>
+                        <div class="targetDiv hidden" id="targetDiv#">
+                            with target <span class="playerNameSpan" id="targetNameSpan#">Elephant</span>
+                        </div>
+                        <div class="guessDiv hidden" id="guessDiv#">
+                            guessed <span class="cardName cardNameBARON" id="guessedCardSpan#">BARON (3)</span>
+                        </div>
+                    </div>
+
+                    <div id="playerInfoTemplate" class="playerInfo playerInfo2">
+                        <span class="playerNameWrapper">
+                            <span class="playerNameSpan" id="playerName#">Dave</span>
+                        </span>
+                        <span id="playerStatusSpan" class="invisible">
+                            <img class="arrowImg" src=""></img>
+                        </span>
+                        <span class="playerTokensSpan" id="playerTokens#">
+                            <img class="gemImg" src="images/gem0.svg"></img>
+                            <img class="gemImg" src="images/gem1.svg"></img>
+                            <img class="gemImg" src="images/gem2.svg"></img><br>
+                            <img class="gemImg" style="filter: hue-rotate(180deg);" src="images/gem1.svg"></img>
+                            <img class="gemImg" src="images/gem0.svg"></img>
+                        </span>
+
+                        <div class="playedDiv" id="playedDiv#">
+                            Played a <span class="cardName cardNameGUARD" id="playedCardSpan#">GUARD (1)</span>
+                        </div>
+                        <div class="targetDiv hidden" id="targetDiv#">
+                            with target <span class="playerNameSpan" id="targetNameSpan#">Elephant</span>
+                        </div>
+                        <div class="guessDiv hidden" id="guessDiv#">
+                            guessed <span class="cardName cardNameBARON" id="guessedCardSpan#">BARON (3)</span>
+                        </div>
+                    </div>
+
+                    <div id="playerInfoTemplate" class="playerInfo playerInfo3">
+                        <span class="playerNameWrapper">
+                            <span class="playerNameSpan" id="playerName#">Dave</span>
+                        </span>
+                        <span id="playerStatusSpan" class="invisible">
+                            <img class="arrowImg" src=""></img>
+                        </span>
+                        <span class="playerTokensSpan" id="playerTokens#">
+                            <img class="gemImg" src="images/gem0.svg"></img>
+                            <img class="gemImg" src="images/gem1.svg"></img>
+                            <img class="gemImg" src="images/gem2.svg"></img><br>
+                            <img class="gemImg" style="filter: hue-rotate(180deg);" src="images/gem2.svg"></img>
+                            <img class="gemImg" src="images/gem0.svg"></img>
+                        </span>
+
+                        <div class="playedDiv" id="playedDiv#">
+                            Played a <span class="cardName cardNameGUARD" id="playedCardSpan#">GUARD (1)</span>
+                        </div>
+                        <div class="targetDiv" id="targetDiv#">
+                            with target <span class="playerNameSpan" id="targetNameSpan#">Elephant</span>
+                        </div>
+                        <div class="guessDiv" id="guessDiv#">
+                            guessed <span class="cardName cardNameBARON" id="guessedCardSpan#">BARON (3)</span>
+                        </div>
+                    </div>
+
+                    <div class="playerInfo playerInfo0" id="playerInfo0"></div>
+                    <div class="playerInfo playerInfo1" id="playerInfo1"></div>
+                    <div class="playerInfo playerInfo2" id="playerInfo2"></div>
+                    <div class="playerInfo playerInfo3" id="playerInfo3"></div>
                 </div>
             </div>
         </div>
         <br>
-
-        <div id="joinGameDiv">
-            <button id="createButton"   onclick="app.createRoom()">Create room</button><br>
-            Room code: <input type="text" id="roomCodeInput" name="roomCodeInput" style="text-transform:uppercase"><br>
-            Name:      <input type="text" id="nameInput" name="nameInput"><br>
-            <button id="connectButton"   onclick="app.connect()">Connect</button>
-        </div>
 
         <div id="gameDiv">
             Room: <span id="roomSpan"></span><br>

@@ -1,18 +1,62 @@
 
 body
 {
-    background-color:lightgrey;
+    /*background-color: #afafaf;*/
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+}
+
+.playBox
+{
+    width: 534px;
+    height: 300px;
+    border-style: solid;
+    margin: auto;
+}
+
+.connectBox
+{
+    width: 150px;
+    margin: auto;
+}
+
+.uppercase
+{
+    text-transform: uppercase;
+}
+
+.inputPair
+{
+    height: 25px;
+    margin: auto;
+}
+
+.inputLabel
+{
+    margin-top: 2px;
+    float: left;
+    display: inline;
+}
+
+.inputBox
+{
+    float: right;
+    width: 100px;
+    display: inline;
 }
 
 .cardLeft
 {
     width: 200px;
     float: left;
+    margin-top: 10px;
+    margin-left: 40px;
 }
 
 .cardRight
 {
-    margin-left: 200px;
+    margin-top: 10px;
+    margin-left: 300px;
 }
 
 .cardAndButton
@@ -25,7 +69,7 @@ body
 .cardBorder
 {
     border-radius: 25px;
-    background-color:white;
+    background-color: white;
     padding: 5px;
     width: 170px;
     height: 230px;
@@ -38,12 +82,11 @@ body
     margin: 0px 6px;
     width: 150px;
     height: 100px;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 14px;
     text-align: center;
     display: flex;
     justify-content: center;
     align-items: center;
+    font-size: 14px;
     line-height: 15px;
 }
 
@@ -55,7 +98,172 @@ body
     margin: 0px 6px;
 }
 
-.cardImgGUARD { background-position:-200px -30px; }
+.hidden
+{
+    display: none;
+}
 
-.cardBorderGUARD { border-color: #b4872f; }
+.invisible
+{
+    visibility: hidden;
+}
 
+.cardName
+{
+    font-weight: bold;
+    -webkit-text-stroke-width: 0.2px;
+    -webkit-text-stroke-color: black;
+}
+
+.cardHelp
+{
+    margin-left: 70px;
+    margin-right: 70px;
+    padding-top: 5px;
+}
+
+.helpCardDetails
+{
+    margin-top: 2px;
+}
+
+.displayCards
+{
+    display: flex;
+    justify-content: flex-end
+}
+
+.displayCard
+{
+    border-radius: 2px;
+    padding-left: 3px;
+    padding-right: 3px;
+    padding-top: 10px;
+    padding-bottom: 0px;
+    margin-left: 2px;
+    margin-right: 2px;
+    margin-top: -12px;
+    border-style: solid;
+    border-width: 2px;
+    display: inline-block;
+    background-color: lightgrey;
+    border-color: grey;
+}
+
+.cardInDeck
+{
+    background-color: lightgreen;
+    border-color: green;
+}
+
+.center
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.button {
+    padding: 3px 16px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 6px 6px;
+    transition-duration: 0.2s;
+    cursor: pointer;
+    background-color: white;
+    color: black;
+    border: 3px solid black;
+    border-radius: 3px;
+}
+
+.button:hover {
+    background-color: lightgrey;
+}
+
+.playerInfo
+{
+    min-height: 55px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border: 3px solid black;
+    border-radius: 3px;
+}
+
+.playerInfoBox
+{
+    margin-left:  10px;
+    width: 250px;
+}
+
+.playerTokensSpan
+{
+    float: right;
+    text-align: right;
+}
+
+.playerNameWrapper
+{
+    margin-left:  10px;
+}
+
+.playerNameSpan
+{
+    font-weight: bold;
+}
+
+.playedDiv
+{
+    margin-left: 10px;
+    margin-top: 20px;
+}
+
+.targetDiv
+{
+    margin-left: 20px;
+}
+
+.guessDiv
+{
+}
+
+.gemImg
+{
+    width: 25px;
+    height: 25px;
+}
+
+.arrowImg
+{
+    float: left;
+    text-align: left;
+    width: 25px;
+    height: 25px;
+}
+
+.cardImgGUARD     { background-position: -200px  -30px; }
+.cardImgPRIEST    { background-position: -370px  -30px; }
+.cardImgBARON     { background-position: -545px  -30px; }
+.cardImgHANDMAID  { background-position: -720px  -30px; }
+.cardImgPRINCE    { background-position: -30px  -270px; }
+.cardImgKING      { background-position: -200px -270px; }
+.cardImgCOUNTESS  { background-position: -370px -270px; }
+.cardImgPRINCESS  { background-position: -545px -270px; }
+
+.cardBorderGUARD     { border-color: #b4872f; }
+.cardBorderPRIEST    { border-color: #ab342e; }
+.cardBorderBARON     { border-color: #a4538b; }
+.cardBorderHANDMAID  { border-color: #75a7ce; }
+.cardBorderPRINCE    { border-color: #cfc874; }
+.cardBorderKING      { border-color: #96b57f; }
+.cardBorderCOUNTESS  { border-color: #8390aa; }
+.cardBorderPRINCESS  { border-color: #b9af9a; }
+
+.cardNameGUARD     { color: #b4872f; }
+.cardNamePRIEST    { color: #ab342e; }
+.cardNameBARON     { color: #a4538b; }
+.cardNameHANDMAID  { color: #75a7ce; }
+.cardNamePRINCE    { color: #cfc874; }
+.cardNameKING      { color: #96b57f; }
+.cardNameCOUNTESS  { color: #8390aa; }
+.cardNamePRINCESS  { color: #b9af9a; }
