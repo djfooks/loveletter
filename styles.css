@@ -62,7 +62,7 @@ body
 .cardAndButton
 {
     text-align: center;
-    width: 180px;
+    width: 185px;
     line-height: 10px;
 }
 
@@ -163,7 +163,8 @@ body
     align-items: center;
 }
 
-.button {
+.button
+{
     padding: 3px 16px;
     text-align: center;
     text-decoration: none;
@@ -177,7 +178,8 @@ body
     border-radius: 3px;
 }
 
-.button:hover {
+.button:hover
+{
     background-color: lightgrey;
 }
 
@@ -192,19 +194,40 @@ body
 
 .playerInfoBox
 {
-    margin-left:  10px;
+    float: left;
+    margin-left: 20px;
     width: 250px;
 }
+
+.playerInfoGrid
+{
+    display: grid;
+    grid-template-columns: 25px auto 25px;
+}
+
+.gridRows2
+{
+    grid-template-rows: 25px 25px;
+}
+
+.gridRows3
+{
+    grid-template-rows: 25px 25px 25px;
+}
+
+.col1 { grid-column: 1/span 1; }
+.col2 { grid-column: 2/span 1; }
+.col3 { grid-column: 3/span 1; }
+
+.fullRow { grid-column: 1/span 3; }
+
+.row1 { grid-row: 1/span 1; }
+.row2 { grid-row: 2/span 1; }
 
 .playerTokensSpan
 {
     float: right;
     text-align: right;
-}
-
-.playerNameWrapper
-{
-    margin-left:  10px;
 }
 
 .playerNameSpan
@@ -218,27 +241,45 @@ body
     margin-top: 20px;
 }
 
+.playerStatusLeftImg
+{
+    margin-right: 10px;
+}
+
+.playerStatusRightImg
+{
+    margin-left: 10px;
+}
+
 .targetDiv
 {
-    margin-left: 20px;
 }
 
 .guessDiv
 {
 }
 
-.gemImg
+.icon
 {
     width: 25px;
     height: 25px;
 }
 
-.arrowImg
+.rot180
+{
+    transform: rotate(180deg);
+}
+
+.leftImg
 {
     float: left;
     text-align: left;
-    width: 25px;
-    height: 25px;
+}
+
+.rightImg
+{
+    float: right;
+    text-align: right;
 }
 
 .cardImgGUARD     { background-position: -200px  -30px; }

@@ -6,6 +6,8 @@ var App = function ()
 
     var i;
 
+    this.playerInfoTemplate = new PlayerInfoTemplate();
+
     this.fullscreenDiv = document.getElementById("fullscreenDiv");
 
     this.responseText = document.getElementById("responseText");
@@ -406,6 +408,7 @@ App.prototype.discard = function (data)
                 playerState.played.push(data.card);
                 this.hand.splice(i, 1);
                 this.updateHandText();
+                break;
             }
         }
     }
@@ -536,6 +539,8 @@ App.prototype.updatePlayersText = function ()
     var roundWinners = this.interaction.roundWinners;
     if (!roundWinners)
         roundWinners = [];
+
+    this.playerInfoTemplate.setPlayerNames(this);
 
     var i;
     var j;
