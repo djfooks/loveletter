@@ -1,0 +1,27 @@
+.cardImg
+{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+    height: 90%;
+    pointer-events: none;
+}
+
+.cardBorderGUARD     { border-color: #b4872f; }
+.cardBorderPRIEST    { border-color: #ab342e; }
+.cardBorderBARON     { border-color: #a4538b; }
+.cardBorderHANDMAID  { border-color: #75a7ce; }
+.cardBorderPRINCE    { border-color: #cfc874; }
+.cardBorderKING      { border-color: #96b57f; }
+.cardBorderCOUNTESS  { border-color: #8390aa; }
+.cardBorderPRINCESS  { border-color: #b9af9a; }
+
+.cardNameGUARD     { color: #b4872f; }
+.cardNamePRIEST    { color: #ab342e; }
+.cardNameBARON     { color: #a4538b; }
+.cardNameHANDMAID  { color: #75a7ce; }
+.cardNamePRINCE    { color: #cfc874; }
+.cardNameKING      { color: #96b57f; }
+.cardNameCOUNTESS  { color: #8390aa; }
+.cardNamePRINCESS  { color: #b9af9a; }

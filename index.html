@@ -4,93 +4,36 @@
         <title>Love Letter</title>
         <meta charset="utf-8">
 
-        <link rel="stylesheet" href="src/styles.css"></link>
+        <link rel="stylesheet" href="styles.css"></link>
+        <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsenui.css">
+        <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
+        <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
     </head>
 
     <body>
-        <div id="joinGameDiv">
-            <button id="createButton"   onclick="app.createRoom()">Create room</button><br>
-            Room code: <input type="text" id="roomCodeInput" name="roomCodeInput" style="text-transform:uppercase"><br>
-            Name:      <input type="text" id="nameInput" name="nameInput"><br>
-            <button id="connectButton"   onclick="app.connect()">Connect</button>
-        </div>
+        <ons-splitter>
+            <!-- The side menu -->
+            <ons-splitter-side id="menu" collapse>
+                <ons-page>
+                    <ons-list>
+                        <ons-list-item onclick="toLobby()">
+                            Lobby
+                        </ons-list-item>
+                        <ons-list-item onclick="leaveRoom()">
+                            Leave Room
+                        </ons-list-item>
+                    </ons-list>
+                </ons-page>
+            </ons-splitter-side>
 
-        <div id="gameDiv">
-            Room: <span id="roomSpan"></span><br>
-            <button id="toggleHelpButton"   onclick="app.toggleView()">Cards Descriptions</button>
-            <div id="cardsHelpDiv" style="display: none;">
-                <textarea rows="2" cols="70" id="cardHelp0Text" readonly></textarea><br>
-                <textarea rows="2" cols="70" id="cardHelp1Text" readonly></textarea><br>
-                <textarea rows="2" cols="70" id="cardHelp2Text" readonly></textarea><br>
-                <textarea rows="2" cols="70" id="cardHelp3Text" readonly></textarea><br>
-                <textarea rows="2" cols="70" id="cardHelp4Text" readonly></textarea><br>
-                <textarea rows="2" cols="70" id="cardHelp5Text" readonly></textarea><br>
-                <textarea rows="2" cols="70" id="cardHelp6Text" readonly></textarea><br>
-                <textarea rows="2" cols="70" id="cardHelp7Text" readonly></textarea><br>
-            </div>
-
-            <div id="mainDiv">
-                Players:<br>
-                <textarea rows="4" cols="70" id="playersText" readonly></textarea>
-
-                <button id="startButton"  style="display: none;"    onclick="app.start()">Start</button>
-
-                <div id="msgDiv">
-                    <textarea rows="6" cols="70" id="msgText" readonly></textarea><button id="msgReadButton" style="display: none;"   onclick="app.msgRead()">Continue</button><br>
-                </div>
-
-                <div id="cardsDiv" style="display: none;">
-                    <hr>
-                    Hand:<br>
-                    <textarea rows="2" cols="70" id="card0Text" readonly></textarea><button id="card0Button"   onclick="app.playCard(0)">Play</button><br>
-                    <div id="pickupDiv" style="display: none;">
-                        <textarea rows="2" cols="70" id="card1Text" readonly></textarea><button id="card1Button"   onclick="app.playCard(1)">Play</button><br>
-                    </div>
-                </div>
-
-                <div id="pickPlayerDiv" style="display: none;">
-                    Pick a player:<br>
-                    <button id="pickPlayer0Button"    onclick="app.pickPlayer(0)">Pick 0</button>
-                    <button id="pickPlayer1Button"    onclick="app.pickPlayer(1)">Pick 1</button>
-                    <button id="pickPlayer2Button"    onclick="app.pickPlayer(2)">Pick 2</button>
-                    <button id="pickPlayer3Button"    onclick="app.pickPlayer(3)">Pick 3</button>
-                    <button id="pickPlayerBackButton" onclick="app.pickPlayer(-1)">Back</button><br>
-                </div>
-
-                <div id="guessCardDiv" style="display: none;">
-                    Guess a card:<br>
-                    <button id="guess1Button"        onclick="app.guess(1)">Guess 1</button><br>
-                    <button id="guess2Button"        onclick="app.guess(2)">Guess 2</button><br>
-                    <button id="guess3Button"        onclick="app.guess(3)">Guess 3</button><br>
-                    <button id="guess4Button"        onclick="app.guess(4)">Guess 4</button><br>
-                    <button id="guess5Button"        onclick="app.guess(5)">Guess 5</button><br>
-                    <button id="guess6Button"        onclick="app.guess(6)">Guess 6</button><br>
-                    <button id="guess7Button"        onclick="app.guess(7)">Guess 7</button><br>
-
-                    <button id="guessBackButton"     onclick="app.guess(-1)">Back</button><br>
-                </div>
-
-                <hr>
-                <div id="disconnectDiv">
-                    <button id="disconnectButton"   onclick="app.disconnect()">Disconnect</button>
-                </div>
-            </div>
-
-            <div id="debugDiv" style="display: none;">
-                <button id="restartButton"     onclick="app.restart()">Start</button><button id="forceRoundEndButton"     onclick="app.forceRoundEnd()">Force Round End</button><br>
-            </div>
-
-            <div id="responseDiv" style="display: none;">
-                <hr>
-                <textarea rows="20" cols="120" id="responseText" readonly></textarea>
-                <br>
-            </div>
-        </div>
-
-        <br>
-        <p id="debugText"></p>
+            <!-- Everything not in the side menu -->
+            <ons-splitter-content>
+                <ons-navigator id="navigator" page="login.html"></ons-navigator>
+            </ons-splitter-content>
+        </ons-splitter>
     </body>
 
+    <script type="text/javascript" src="carddata.js"></script>
     <script type="text/javascript" src="app.js"></script>
 </html>
 
