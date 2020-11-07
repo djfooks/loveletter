@@ -1,13 +1,85 @@
 
 var App = function ()
 {
+    var that = this;
+    document.addEventListener('init', function(event) {
+      if (event.target.matches('#help')) {
+            that.setupHelp();
+          }
+      }, false);
 
+    this.quickHelpRemainingSpan = [];
+    this.remainingCardSpan = [];
 };
 
 App.prototype.joinRoom = function ()
 {
     const navigator = document.querySelector('#navigator');
-    navigator.resetToPage('cards.html');
+    navigator.resetToPage('help.html');
+};
+
+App.prototype.setupHelp = function ()
+{
+    var quickHelpItemTemplate = document.querySelector('#quickHelpCardItem');
+    var quickHelpCard = document.querySelector('#quickHelpCard');
+
+    var cardTemplate = document.querySelector('#helpCarouselItem');
+    this.helpCarousel = document.querySelector('#carousel');
+
+    var i;
+    var cardType;
+
+    for (i = 0; i < 8; i += 1)
+    {
+        cardType = orderedCards[i];
+
+        var divItem = document.createElement('div');
+        var quickHelpInnerHTML = quickHelpItemTemplate.innerHTML;
+        quickHelpInnerHTML = quickHelpInnerHTML.replaceAll("{id}", i);
+        quickHelpInnerHTML = quickHelpInnerHTML.replaceAll("{cardType}", cardType);
+        quickHelpInnerHTML = quickHelpInnerHTML.replaceAll("{cardName}", cardType + " (" + cardDetailsMap[cardType].value + ")");
+        divItem.innerHTML = quickHelpInnerHTML;
+        quickHelpCard.appendChild(divItem);
+
+        var onsItem = document.createElement('ons-carousel-item');
+        var cardInnerHTML = cardTemplate.innerHTML;
+        cardInnerHTML = cardInnerHTML.replaceAll("{id}", i);
+        cardInnerHTML = cardInnerHTML.replaceAll("{img}", "img/" + cardType + ".png");
+        cardInnerHTML = cardInnerHTML.replaceAll("{cardText}", cardDetailsMap[cardType].action);
+        cardInnerHTML = cardInnerHTML.replaceAll("{cardText}", cardDetailsMap[cardType].action);
+
+        onsItem.innerHTML = cardInnerHTML;
+        this.helpCarousel.appendChild(onsItem);
+
+        this.quickHelpRemainingSpan[i] = document.querySelector('#quickHelp' + i + 'RemainingText');
+        this.remainingCardSpan[i] = document.querySelector('#helpCard' + i + 'RemainingText');
+    }
+
+    this.setRemainingCounts();
+};
+
+App.prototype.setRemainingCounts = function ()
+{
+    var i;
+
+    for (i = 0; i < 8; i += 1)
+    {
+        var cardType = orderedCards[i];
+        var numInDeck = cardDetailsMap[cardType].numInDeck;
+        var remaining = numInDeck;
+        this.remainingCardSpan[i].innerHTML = "Remaining " + remaining + " / " + numInDeck;
+        this.quickHelpRemainingSpan[i].innerHTML = remaining + " / " + numInDeck;
+    }
+};
+
+App.prototype.helpPrev = function ()
+{
+    this.helpCarousel.prev();
+};
+
+App.prototype.helpNext = function ()
+{
+    this.helpCarousel.next();
 };
 
 var app = new App();

@@ -1,3 +1,13 @@
+.alignLeft
+{
+    float: left;
+}
+
+.alignRight
+{
+    float: right;
+}
+
 .cardImg
 {
     display: block;
@@ -6,6 +16,8 @@
     width: 90%;
     height: 90%;
     pointer-events: none;
+
+    max-width: 500px;
 }
 
 .playerInfoGrid
@@ -33,14 +45,30 @@
     height: 25px;
 }
 
-.cardBorderGUARD     { border-color: #b4872f; }
-.cardBorderPRIEST    { border-color: #ab342e; }
-.cardBorderBARON     { border-color: #a4538b; }
-.cardBorderHANDMAID  { border-color: #75a7ce; }
-.cardBorderPRINCE    { border-color: #cfc874; }
-.cardBorderKING      { border-color: #96b57f; }
-.cardBorderCOUNTESS  { border-color: #8390aa; }
-.cardBorderPRINCESS  { border-color: #b9af9a; }
+.cardText
+{
+    padding: 5%;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    line-height: 15px;
+}
+
+.remainingText
+{
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+}
+
+.cardPlayButtonDiv
+{
+    text-align: center;
+}
 
 .cardNameGUARD     { color: #b4872f; }
 .cardNamePRIEST    { color: #ab342e; }

@@ -12,12 +12,25 @@
         <ons-carousel-item>
             <ons-card>
                 <img id="card0Img" class="cardImg" src="img/guard.png"/>
+                <div id="card0Text" class="cardText">
+                    Pick another player and guess their card type (you cannot guess "Guard"). If correct, the other player is eliminated.
+                </div>
+                <div class="cardPlayButtonDiv">
+                    <ons-button id="card0PlayButton" onclick="app.playCard(0)">Play</ons-button>
+                </div>
             </ons-card>
         </ons-carousel-item>
 
         <ons-carousel-item>
             <ons-card>
                 <img id="card1Img" class="cardImg" src="img/priest.png"/>
+                <div id="card1Text" class="cardText">
+                    Pick another player to privately see their hand.
+                </div>
+
+                <div class="cardPlayButtonDiv">
+                    <ons-button id="card1PlayButton" onclick="app.playCard(1)">Play</ons-button>
+                </div>
             </ons-card>
         </ons-carousel-item>
     </ons-carousel>
