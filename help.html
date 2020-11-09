@@ -13,25 +13,5 @@
         </div>
     </ons-toolbar>
 
-    <template id="quickHelpCardItem">
-        <span class="cardName cardName{cardType} alignLeft">{cardName}</span>
-        <span id="quickHelp{id}RemainingText" class="alignRight"></span><br><br>
-    </template>
-
-    <template id="helpCarouselItem">
-        <ons-card>
-            <img id="helpCard{id}Img" class="cardImg" src="{img}"/>
-            <div id="helpCard{id}Text" class="cardText">{cardText}</div>
-            <div id="helpCard{id}RemainingText" class="remainingText"></div>
-        </ons-card>
-    </template>
-
-    <ons-carousel id="carousel" fullscreen swipeable auto-scroll auto-scroll-ratio="0.1">
-        <ons-carousel-item>
-            <ons-card id="quickHelpCard">
-                <span class="alignLeft">Card (value)</span>
-                <span class="alignRight">Remaining / In Deck</span><br><br>
-            </ons-card>
-        </ons-carousel-item>
-    </ons-carousel>
+    <div id="react"></div>
 </ons-page>

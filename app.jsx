@@ -20,56 +20,61 @@ App.prototype.joinRoom = function ()
 
 App.prototype.setupHelp = function ()
 {
-    var quickHelpItemTemplate = document.querySelector('#quickHelpCardItem');
-    var quickHelpCard = document.querySelector('#quickHelpCard');
-
-    var cardTemplate = document.querySelector('#helpCarouselItem');
-    this.helpCarousel = document.querySelector('#carousel');
-
-    var i;
-    var cardType;
-
-    for (i = 0; i < 8; i += 1)
+    function QuickHelpList(props)
     {
-        cardType = orderedCards[i];
-
-        var divItem = document.createElement('div');
-        var quickHelpInnerHTML = quickHelpItemTemplate.innerHTML;
-        quickHelpInnerHTML = quickHelpInnerHTML.replaceAll("{id}", i);
-        quickHelpInnerHTML = quickHelpInnerHTML.replaceAll("{cardType}", cardType);
-        quickHelpInnerHTML = quickHelpInnerHTML.replaceAll("{cardName}", cardType + " (" + cardDetailsMap[cardType].value + ")");
-        divItem.innerHTML = quickHelpInnerHTML;
-        quickHelpCard.appendChild(divItem);
-
-        var onsItem = document.createElement('ons-carousel-item');
-        var cardInnerHTML = cardTemplate.innerHTML;
-        cardInnerHTML = cardInnerHTML.replaceAll("{id}", i);
-        cardInnerHTML = cardInnerHTML.replaceAll("{img}", "img/" + cardType + ".png");
-        cardInnerHTML = cardInnerHTML.replaceAll("{cardText}", cardDetailsMap[cardType].action);
-        cardInnerHTML = cardInnerHTML.replaceAll("{cardText}", cardDetailsMap[cardType].action);
-
-        onsItem.innerHTML = cardInnerHTML;
-        this.helpCarousel.appendChild(onsItem);
-
-        this.quickHelpRemainingSpan[i] = document.querySelector('#quickHelp' + i + 'RemainingText');
-        this.remainingCardSpan[i] = document.querySelector('#helpCard' + i + 'RemainingText');
+        return orderedCards.map((cardType, index) =>
+            <div key={cardType}>
+                <span className="cardName cardName{cardType} alignLeft">{cardDetailsMap[cardType].name}</span>
+                <span id="quickHelp{id}RemainingText" class="alignRight">{props.remainingCards[index]} / {cardDetailsMap[cardType].numInDeck}</span>
+                <br />
+                <br />
+            </div>
+        );
     }
 
-    this.setRemainingCounts();
-};
-
-App.prototype.setRemainingCounts = function ()
-{
-    var i;
-
-    for (i = 0; i < 8; i += 1)
+    function QuickHelpCard(props)
     {
-        var cardType = orderedCards[i];
-        var numInDeck = cardDetailsMap[cardType].numInDeck;
-        var remaining = numInDeck;
-        this.remainingCardSpan[i].innerHTML = "Remaining " + remaining + " / " + numInDeck;
-        this.quickHelpRemainingSpan[i].innerHTML = remaining + " / " + numInDeck;
+        return (
+            <ons-card>
+                <span className="alignLeft">Card (value)</span>
+                <span className="alignRight">Remaining / In Deck</span><br/><br/>
+                <QuickHelpList remainingCards={props.remainingCards} />
+            </ons-card>
+        );
     }
+
+    function HelpCardItems(props)
+    {
+        return orderedCards.map((cardType, index) =>
+            <ons-carousel-item key={cardType}>
+                <ons-card>
+                    <img className="cardImg" src={"img/" + cardType + ".png"}/>
+                    <div className="cardText">{cardDetailsMap[cardType].action}</div>
+                    <div className="remainingText">Remaining {props.remainingCards[index]} / {cardDetailsMap[cardType].numInDeck}</div>
+                </ons-card>
+            </ons-carousel-item>
+        );
+    }
+
+    function HelpCarouselItems(props) {
+      return (
+        <ons-carousel id="helpCarousel" fullscreen swipeable auto-scroll auto-scroll-ratio="0.1">
+            <ons-carousel-item>
+                <QuickHelpCard remainingCards={props.remainingCards} />
+            </ons-carousel-item>
+            <HelpCardItems remainingCards={props.remainingCards} />
+        </ons-carousel>
+      );
+    }
+
+    var remainingCards = [1, 2, 3, 4, 5, 6, 7, 1];
+
+    ReactDOM.render(
+        <HelpCarouselItems remainingCards={remainingCards} />,
+        document.getElementById('react')
+    );
+
+    this.helpCarousel = document.getElementById('helpCarousel');
 };
 
 App.prototype.helpPrev = function ()
