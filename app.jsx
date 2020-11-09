@@ -3,14 +3,26 @@ var App = function ()
 {
     var that = this;
     document.addEventListener('init', function(event) {
-      if (event.target.matches('#help')) {
-            that.setupHelp();
-          }
-      }, false);
+            if (event.target.matches('#help')) {
+                that.setupHelp();
+            }
+        }, false);
+
+    document.addEventListener('prechange', ({ target, tabItem }) => {
+            if (target.matches('#tabbar'))
+            {
+                document.querySelector('#home-toolbar .center').innerHTML = tabItem.getAttribute('label');
+            }
+        });
 
     this.quickHelpRemainingSpan = [];
     this.remainingCardSpan = [];
 };
+
+App.prototype.openMenu = function ()
+{
+    document.querySelector('#menu').open();
+}
 
 App.prototype.joinRoom = function ()
 {
@@ -25,7 +37,7 @@ App.prototype.setupHelp = function ()
         return orderedCards.map((cardType, index) =>
             <div key={cardType}>
                 <span className="cardName cardName{cardType} alignLeft">{cardDetailsMap[cardType].name}</span>
-                <span id="quickHelp{id}RemainingText" class="alignRight">{props.remainingCards[index]} / {cardDetailsMap[cardType].numInDeck}</span>
+                <span className="alignRight">{props.remainingCards[index]} / {cardDetailsMap[cardType].numInDeck}</span>
                 <br />
                 <br />
             </div>
@@ -56,15 +68,16 @@ App.prototype.setupHelp = function ()
         );
     }
 
-    function HelpCarouselItems(props) {
-      return (
-        <ons-carousel id="helpCarousel" fullscreen swipeable auto-scroll auto-scroll-ratio="0.1">
-            <ons-carousel-item>
-                <QuickHelpCard remainingCards={props.remainingCards} />
-            </ons-carousel-item>
-            <HelpCardItems remainingCards={props.remainingCards} />
-        </ons-carousel>
-      );
+    function HelpCarouselItems(props)
+    {
+        return (
+            <ons-carousel id="helpCarousel" fullscreen swipeable auto-scroll auto-scroll-ratio="0.1">
+                <ons-carousel-item>
+                    <QuickHelpCard remainingCards={props.remainingCards} />
+                </ons-carousel-item>
+                <HelpCardItems remainingCards={props.remainingCards} />
+            </ons-carousel>
+        );
     }
 
     var remainingCards = [1, 2, 3, 4, 5, 6, 7, 1];
