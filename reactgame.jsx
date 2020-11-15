@@ -127,19 +127,6 @@ function PlayerCharacter(props)
     return <img className="characterImg" src={imgPath}/>;
 }
 
-function PlayerState(props)
-{
-    if (props.state == "SAFE")
-    {
-        return <img className="statusImg" src="img/shield.svg"/>;
-    }
-    else if (props.state == "DEAD")
-    {
-        return <img className="statusImg" src="img/danger.svg"/>;
-    }
-    return null;
-}
-
 function PlayersList(props)
 {
     return props.playerDetails.map((playerDetails, index) =>

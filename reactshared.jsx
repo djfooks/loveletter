@@ -14,6 +14,19 @@ function CardImgAndDetails(props)
     );
 }
 
+function PlayerState(props)
+{
+    if (props.state == "SAFE")
+    {
+        return <img className="statusImg" src="img/shield.svg"/>;
+    }
+    else if (props.state == "DEAD")
+    {
+        return <img className="statusImg" src="img/danger.svg"/>;
+    }
+    return null;
+}
+
 class DotDotDot extends React.Component {
   constructor(props) {
     super(props);
@@ -33,7 +46,7 @@ class DotDotDot extends React.Component {
 
   tick() {
     this.setState((state, props) => (
-      {"counter": (state.counter + 1) % 3}
+      {"counter": (state.counter + 1) % 4}
     ));
   }
 

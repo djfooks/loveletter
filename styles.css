@@ -77,9 +77,24 @@
     height: 25px;
 }
 
+.hspacer
+{
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
 .cardText
 {
     padding: 5%;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.interactionDots
+{
+    font-size: 20px;
     text-align: center;
     display: flex;
     justify-content: center;

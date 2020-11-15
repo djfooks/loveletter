@@ -150,16 +150,22 @@ App.prototype.helpNext = function ()
     this.helpCarousel.next();
 };
 
-
 App.prototype.setupInteraction = function ()
 {
     var interactionData = {};
 
     interactionData.playerDetails = app.playerDetails;
+    interactionData.playerId = 1;
     interactionData.playerTurn = 0;
-    interactionData.playedCard = "GUARD";
     interactionData.playerTarget = 1;
+    interactionData.playedCard = "BARON";
+    interactionData.otherCard = "GUARD";
     interactionData.guessed = "PRINCE";
+    interactionData.interactionStatus = "CONTINUE";
+    interactionData.result = "TIE";
+    interactionData.revealedCard = "GUARD";
+    interactionData.loser = 1;
+    interactionData.discard = "GUARD";
 
     ReactDOM.render(
         InteractionPageContent(interactionData),
