@@ -6,17 +6,54 @@ var App = function ()
             if (event.target.matches('#help')) {
                 that.setupHelp();
             }
+            if (event.target.matches('#game')) {
+                that.setupGame();
+            }
+            if (event.target.matches('#interaction')) {
+                that.setupInteraction();
+            }
         }, false);
 
     document.addEventListener('prechange', ({ target, tabItem }) => {
             if (target.matches('#tabbar'))
             {
-                document.querySelector('#home-toolbar .center').innerHTML = tabItem.getAttribute('label');
+                document.querySelector('#game-toolbar .center').innerHTML = tabItem.getAttribute('label');
             }
         });
 
     this.quickHelpRemainingSpan = [];
     this.remainingCardSpan = [];
+
+    this.playerDetails =  [
+        {
+            "name": "DaveyGravey",
+            "tokens": [4, 5],
+            "discarded": ["GUARD", "PRINCE", "BARON"],
+            "character": 0,
+            "state": "ALIVE"
+        },
+        {
+            "name": "Jojo",
+            "tokens": [1, 7, 8],
+            "discarded": ["PRIEST", "KING", "BARON"],
+            "character": 5,
+            "state": "ALIVE"
+        },
+        {
+            "name": "Bob",
+            "tokens": [1, 7, 8],
+            "discarded": ["PRINCESS"],
+            "character": 10,
+            "state": "DEAD"
+        },
+        {
+            "name": "Harry",
+            "tokens": [1, 7, 8],
+            "discarded": [],
+            "character": 26,
+            "state": "SAFE"
+        }
+    ];
 };
 
 App.prototype.openMenu = function ()
@@ -24,67 +61,80 @@ App.prototype.openMenu = function ()
     document.querySelector('#menu').open();
 }
 
+App.prototype.loadPage = function (page)
+{
+    document.querySelector('#menu').close();
+    document.querySelector('#navigator').bringPageTop(page, { animation: 'fade' });
+}
+
 App.prototype.joinRoom = function ()
 {
-    const navigator = document.querySelector('#navigator');
-    navigator.resetToPage('help.html');
+    this.loadPage('interaction.html');
+};
+
+App.prototype.toGame = function ()
+{
+    this.loadPage('game.html');
+};
+
+App.prototype.toHelp = function ()
+{
+    this.loadPage('help.html');
+};
+
+App.prototype.setupGame = function ()
+{
+    var gameData = {};
+
+    gameData.tokenList = [];
+    var i;
+    for (i = 0; i < 30; i += 1)
+    {
+        gameData.tokenList[i] = {
+            "color": "red",
+            "rotation": 5
+        };
+    }
+
+    gameData.playerDetails = app.playerDetails;
+
+    gameData.cards = ["GUARD"];
+
+    gameData.cardPlayState = {"state": "GUESS", "target": 1 };
+
+    gameData.remainingCards = [1, 2, 3, 4, 5, 6, 7, 1];
+
+    ReactDOM.render(
+        GameCarouselItems(gameData),
+        document.getElementById('gameReact')
+    );
+
+    ReactDOM.render(
+        GameTopBar(gameData),
+        document.getElementById('gameTopBarReact')
+    );
+
+    this.gameCarousel = document.getElementById('gameCarousel');
+};
+
+App.prototype.gamePrev = function ()
+{
+    this.gameCarousel.prev();
+};
+
+App.prototype.gameNext = function ()
+{
+    this.gameCarousel.next();
 };
 
 App.prototype.setupHelp = function ()
 {
-    function QuickHelpList(props)
-    {
-        return orderedCards.map((cardType, index) =>
-            <div key={cardType}>
-                <span className="cardName cardName{cardType} alignLeft">{cardDetailsMap[cardType].name}</span>
-                <span className="alignRight">{props.remainingCards[index]} / {cardDetailsMap[cardType].numInDeck}</span>
-                <br />
-                <br />
-            </div>
-        );
-    }
-
-    function QuickHelpCard(props)
-    {
-        return (
-            <ons-card>
-                <span className="alignLeft">Card (value)</span>
-                <span className="alignRight">Remaining / In Deck</span><br/><br/>
-                <QuickHelpList remainingCards={props.remainingCards} />
-            </ons-card>
-        );
-    }
-
-    function HelpCardItems(props)
-    {
-        return orderedCards.map((cardType, index) =>
-            <ons-carousel-item key={cardType}>
-                <ons-card>
-                    <img className="cardImg" src={"img/" + cardType + ".png"}/>
-                    <div className="cardText">{cardDetailsMap[cardType].action}</div>
-                    <div className="remainingText">Remaining {props.remainingCards[index]} / {cardDetailsMap[cardType].numInDeck}</div>
-                </ons-card>
-            </ons-carousel-item>
-        );
-    }
-
-    function HelpCarouselItems(props)
-    {
-        return (
-            <ons-carousel id="helpCarousel" fullscreen swipeable auto-scroll auto-scroll-ratio="0.1">
-                <ons-carousel-item>
-                    <QuickHelpCard remainingCards={props.remainingCards} />
-                </ons-carousel-item>
-                <HelpCardItems remainingCards={props.remainingCards} />
-            </ons-carousel>
-        );
-    }
-
-    var remainingCards = [1, 2, 3, 4, 5, 6, 7, 1];
+    var helpData = {};
+    helpData.remainingCards = [1, 2, 3, 4, 5, 6, 7, 1];
 
     ReactDOM.render(
-        <HelpCarouselItems remainingCards={remainingCards} />,
-        document.getElementById('react')
+        getHelpElement(helpData),
+        document.getElementById('helpReact')
     );
 
     this.helpCarousel = document.getElementById('helpCarousel');
@@ -98,6 +148,23 @@ App.prototype.helpPrev = function ()
 App.prototype.helpNext = function ()
 {
     this.helpCarousel.next();
+};
+
+
+App.prototype.setupInteraction = function ()
+{
+    var interactionData = {};
+
+    interactionData.playerDetails = app.playerDetails;
+    interactionData.playerTurn = 0;
+    interactionData.playedCard = "GUARD";
+    interactionData.playerTarget = 1;
+    interactionData.guessed = "PRINCE";
+
+    ReactDOM.render(
+        InteractionPageContent(interactionData),
+        document.getElementById('interactionReact')
+    );
 };
 
 var app = new App();

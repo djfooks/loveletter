@@ -1,21 +1,21 @@
-<ons-page id="help">
-    <ons-toolbar id="help-toolbar">
+<ons-page id="game">
+    <ons-toolbar id="game-toolbar">
         <div class="left">
             <ons-toolbar-button onclick="app.openMenu()">
                 <ons-icon icon="md-menu"></ons-icon>
             </ons-toolbar-button>
 
-            <ons-toolbar-button onclick="app.helpPrev()">
+            <ons-toolbar-button onclick="app.gamePrev()">
                 <ons-icon icon="md-chevron-left"></ons-icon>
             </ons-toolbar-button>
         </div>
-        <div class="center">Help</div>
         <div class="right">
-            <ons-toolbar-button onclick="app.helpNext()">
+            <span id="gameTopBarReact"></span>
+            <ons-toolbar-button onclick="app.gameNext()">
                 <ons-icon icon="md-chevron-right"></ons-icon>
             </ons-toolbar-button>
         </div>
     </ons-toolbar>
 
-    <div id="helpReact"></div>
+    <div id="gameReact"></div>
 </ons-page>

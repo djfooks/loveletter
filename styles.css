@@ -8,6 +8,38 @@
     float: right;
 }
 
+.interactionText
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.characterImg
+{
+    width: 64px;
+}
+
+.playerName
+{
+    padding-right: 7px;
+}
+
+.statusImg
+{
+    width: 32px;
+}
+
+.gemImg
+{
+    width: 32px;
+}
+
+.gemPadding
+{
+    width: 16px;
+}
+
 .cardImg
 {
     display: block;
@@ -52,8 +84,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 14px;
-    line-height: 15px;
 }
 
 .remainingText
@@ -68,6 +98,13 @@
 .cardPlayButtonDiv
 {
     text-align: center;
+}
+
+.cardName
+{
+    font-weight: bold;
+    -webkit-text-stroke-width: 0.2px;
+    -webkit-text-stroke-color: black;
 }
 
 .cardNameGUARD     { color: #b4872f; }
