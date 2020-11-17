@@ -14,6 +14,30 @@ function CardImgAndDetails(props)
     );
 }
 
+function PlayerCharacterName(props)
+{
+    return (
+        <React.Fragment>
+            <PlayerCharacter playerDetails={props.playerDetails}/>
+            <span className="playerName">{props.playerDetails.name}</span>
+        </React.Fragment>
+    );
+}
+
+function PlayerCharacter(props)
+{
+    var imgPath;
+    if (props.playerDetails.state == "ALIVE" || props.playerDetails.state == "SAFE")
+    {
+        imgPath = "img/characters/" + charactersMap[props.playerDetails.character];
+    }
+    else // DEAD
+    {
+        imgPath = "img/dead-characters/" + charactersMap[props.playerDetails.character];
+    }
+    return <img className="characterImg" src={imgPath}/>;
+}
+
 function PlayerState(props)
 {
     if (props.state == "SAFE")

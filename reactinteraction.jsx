@@ -10,6 +10,44 @@ function InteractionCard(props)
     );
 }
 
+function PlayerDiscard(props)
+{
+    return (
+        <React.Fragment>
+            <InteractionCard>
+                <PlayerCharacterName playerDetails={props.playerDetails} /> discarded
+            </InteractionCard>
+            <ons-card>
+                <CardImgAndDetails card={props.card} />
+            </ons-card>
+        </React.Fragment>
+    );
+}
+
+function PlayerEliminated(props)
+{
+    return (
+        <InteractionCard>
+            <PlayerCharacterName playerDetails={props.playerDetails} /> has been eliminated!
+            <PlayerState state="DEAD" />
+        </InteractionCard>
+    );
+}
+
+function SecretReveal(props)
+{
+    return (
+        <React.Fragment>
+            <InteractionCard>
+                <PlayerCharacterName playerDetails={props.playerDetails} /> secretly reveals
+            </InteractionCard>
+            <ons-card>
+                <CardImgAndDetails card={props.card} />
+            </ons-card>
+        </React.Fragment>
+    );
+}
+
 function InteractionPageContent(props)
 {
     var turnPlayerDetails = props.playerDetails[props.playerTurn];
@@ -21,8 +59,8 @@ function InteractionPageContent(props)
     {
         interaction = (
                 <InteractionCard>
-                    To target <PlayerCharacter playerDetails={targetPlayerDetails} /><span className="playerName">{targetPlayerDetails.name}</span>
-                    and guessed<span style={{"padding": "3px"}}></span><CardName card={props.guessed} />
+                    To target <PlayerCharacterName playerDetails={targetPlayerDetails} />
+                    and guessed<span className="hspacer"></span><CardName card={props.guessed} />
                 </InteractionCard>
             );
         waitingText = "Waiting for the big reveal";
@@ -34,7 +72,7 @@ function InteractionPageContent(props)
     {
         interaction = (
                 <InteractionCard>
-                    To target <PlayerCharacter playerDetails={targetPlayerDetails} /><span className="playerName">{targetPlayerDetails.name}</span>
+                    To target <PlayerCharacterName playerDetails={targetPlayerDetails} />
                 </InteractionCard>
             );
         waitingText = "Waiting for the big reveal";
@@ -42,9 +80,7 @@ function InteractionPageContent(props)
     else if (props.playedCard == "PRINCESS")
     {
         interaction = (
-                <InteractionCard>
-                    <PlayerCharacter playerDetails={turnPlayerDetails} /><span className="playerName">{turnPlayerDetails.name}</span> has been eliminated!
-                </InteractionCard>
+                <PlayerEliminated playerDetails={turnPlayerDetails} />
             );
     }
 
@@ -89,16 +125,8 @@ function InteractionPageContent(props)
             {
                 otherDetails = (
                     <React.Fragment>
-                        <InteractionCard>
-                            <PlayerCharacter playerDetails={targetPlayerDetails} /><span className="playerName">{targetPlayerDetails.name}</span> discarded
-                        </InteractionCard>
-                        <ons-card>
-                            <CardImgAndDetails card={props.guessed} />
-                        </ons-card>
-                        <InteractionCard>
-                            <PlayerCharacter playerDetails={targetPlayerDetails} /><span className="playerName">{targetPlayerDetails.name}</span> has been eliminated!
-                            <PlayerState state="DEAD" />
-                        </InteractionCard>
+                        <PlayerDiscard playerDetails={targetPlayerDetails} card={props.guessed}/>
+                        <PlayerEliminated playerDetails={targetPlayerDetails} />
                         {endTurn}
                     </React.Fragment>
                 );
@@ -121,12 +149,7 @@ function InteractionPageContent(props)
             {
                 otherDetails = (
                     <React.Fragment>
-                        <InteractionCard>
-                            <PlayerCharacter playerDetails={targetPlayerDetails} /><span className="playerName">{targetPlayerDetails.name}</span> secretly reveals
-                        </InteractionCard>
-                        <ons-card>
-                            <CardImgAndDetails card={props.guessed} />
-                        </ons-card>
+                        <SecretReveal playerDetails={targetPlayerDetails} card={props.guessed} />
                         {endTurn}
                     </React.Fragment>
                 );
@@ -136,7 +159,7 @@ function InteractionPageContent(props)
                 otherDetails = (
                     <React.Fragment>
                         <InteractionCard>
-                            <PlayerCharacter playerDetails={targetPlayerDetails} /><span className="playerName">{targetPlayerDetails.name}</span> has secretly revealed their card
+                            <PlayerCharacterName playerDetails={targetPlayerDetails} /> has secretly revealed their card
                         </InteractionCard>
                         {endTurn}
                     </React.Fragment>
@@ -145,39 +168,63 @@ function InteractionPageContent(props)
         }
         else if (props.playedCard == "BARON")
         {
-            // TODO
-            /*var targetCard;
-            var resultString;
-            if ()
+            var winner = props.loser == props.playerTurn ? props.playerTarget : props.playerTurn;
+            var winnerPlayerDetails = props.playerDetails[winner];
+            var loserPlayerDetails = props.playerDetails[props.loser];
+
+            if (props.playerTurn == props.playerId || props.playerTarget == props.playerId)
             {
-                header = (
-                    <InteractionCard>
-                        <PlayerCharacter playerDetails={turnPlayerDetails} /><span className="playerName">{turnPlayerDetails.name}</span> secretly reveals
-                    </InteractionCard>
-                    <ons-card>
-                        <CardImgAndDetails card={props.playedCard} />
-                    </ons-card>
-                );
+                if (props.result == "TIE")
+                {
+                    otherDetails = (
+                        <React.Fragment>
+                            <SecretReveal playerDetails={turnPlayerDetails} card={props.revealedCard} />
+                            <SecretReveal playerDetails={targetPlayerDetails} card={props.revealedCard} />
+                            <InteractionCard>
+                                Its a tie! (nothing happens)
+                            </InteractionCard>
+                        </React.Fragment>
+                    );
+                }
+                else
+                {
+                    var turnPlayerCard = props.playerId == props.playerTurn ? props.otherCard : props.revealedCard;
+                    var targetPlayerCard = props.playerId == props.playerTarget ? props.otherCard : props.revealedCard;
+                    otherDetails = (
+                        <React.Fragment>
+                            <SecretReveal playerDetails={turnPlayerDetails} card={turnPlayerCard} />
+                            <SecretReveal playerDetails={targetPlayerDetails} card={targetPlayerCard} />
+                            <InteractionCard>
+                                <PlayerCharacterName playerDetails={winnerPlayerDetails} /> wins!
+                            </InteractionCard>
+                            <PlayerEliminated playerDetails={loserPlayerDetails} />
+                        </React.Fragment>
+                    );
+                }
             }
-
-            if (props.result == "TIE")
+            else
             {
-
-                otherDetails = (
-                    <React.Fragment>
-                        <InteractionCard>
-                            <PlayerCharacter playerDetails={targetPlayerDetails} /><span className="playerName">{targetPlayerDetails.name}</span> secretly reveals
-                        </InteractionCard>
-                        <ons-card>
-                            <CardImgAndDetails card={props.playedCard} />
-                        </ons-card>
+                if (props.result == "TIE")
+                {
+                    otherDetails = (
                         <InteractionCard>
                             Its a tie! (nothing happens)
                         </InteractionCard>
-                        {endTurn}
-                    </React.Fragment>
-                );
-            }*/
+                    );
+                }
+                else
+                {
+                    otherDetails = (
+                        <React.Fragment>
+                            <InteractionCard>
+                                <PlayerCharacterName playerDetails={winnerPlayerDetails} /> wins!
+                            </InteractionCard>
+                            <PlayerDiscard playerDetails={loserPlayerDetails} card={props.discarded}/>
+                            <PlayerEliminatedDiscard playerDetails={loserPlayerDetails} />
+                        </React.Fragment>
+                    );
+                }
+            }
         }
     }
     else
@@ -198,7 +245,7 @@ function InteractionPageContent(props)
         <React.Fragment>
             <ons-card>
                 <div className="interactionText">
-                    <PlayerCharacter playerDetails={turnPlayerDetails} /><span className="playerName">{turnPlayerDetails.name}</span> played
+                    <PlayerCharacterName playerDetails={turnPlayerDetails} /> played
                 </div>
             </ons-card>
 

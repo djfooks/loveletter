@@ -46,7 +46,7 @@ function GameCardItem(props)
         playState = (
             <div>
                 <div className="interactionText">
-                    Guess what card <PlayerCharacter playerDetails={targetPlayerDetails} /><span className="playerName">{targetPlayerDetails.name}</span> has
+                    Guess what card <PlayerCharacterName playerDetails={targetPlayerDetails} /> has
                 </div>
                 <ons-list>
                     {
@@ -111,20 +111,6 @@ function PlayerLine(props)
             </div>
         </React.Fragment>
     );
-}
-
-function PlayerCharacter(props)
-{
-    var imgPath;
-    if (props.playerDetails.state == "ALIVE" || props.playerDetails.state == "SAFE")
-    {
-        imgPath = "img/characters/" + charactersMap[props.playerDetails.character];
-    }
-    else // DEAD
-    {
-        imgPath = "img/dead-characters/" + charactersMap[props.playerDetails.character];
-    }
-    return <img className="characterImg" src={imgPath}/>;
 }
 
 function PlayersList(props)

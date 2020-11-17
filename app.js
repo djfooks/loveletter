@@ -159,12 +159,12 @@ App.prototype.setupInteraction = function ()
     interactionData.playerTurn = 0;
     interactionData.playerTarget = 1;
     interactionData.playedCard = "BARON";
-    interactionData.otherCard = "GUARD";
+    interactionData.otherCard = "KING";
     interactionData.guessed = "PRINCE";
     interactionData.interactionStatus = "CONTINUE";
-    interactionData.result = "TIE";
+    interactionData.result = "LOSE";
     interactionData.revealedCard = "GUARD";
-    interactionData.loser = 1;
+    interactionData.loser = 0;
     interactionData.discard = "GUARD";
 
     ReactDOM.render(
