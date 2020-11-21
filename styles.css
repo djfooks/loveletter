@@ -15,6 +15,33 @@
     align-items: center;
 }
 
+.characterGridCell
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.characterGridCellSelected
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: lightgreen;
+    border-style: solid;
+    border-width: thick;
+}
+
+.characterGridCellAlreadyPicked
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: lightpink;
+    border-style: solid;
+    border-width: thick;
+}
+
 .characterImg
 {
     width: 64px;
@@ -53,24 +80,16 @@
     max-width: 500px;
 }
 
-.playerInfoGrid
-{
-    display: grid;
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-auto-rows: 33vw;
 }
 
-.gridRows2
-{
-    grid-template-rows: 25px 25px;
+.gridImg {
+  width: 100%;
+  height: 100%;
 }
-
-.gridRows3
-{
-    grid-template-rows: 25px 25px 25px;
-}
-
-.row1 { grid-row: 1/span 1; }
-.row2 { grid-row: 2/span 1; }
-.row3 { grid-row: 3/span 1; }
 
 .icon
 {

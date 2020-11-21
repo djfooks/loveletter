@@ -12,6 +12,12 @@ var App = function ()
             if (event.target.matches('#interaction')) {
                 that.setupInteraction();
             }
+            if (event.target.matches('#roundend')) {
+                that.setupRoundEnd();
+            }
+            if (event.target.matches('#pickcharacter')) {
+                that.setupPickCharacter();
+            }
         }, false);
 
     document.addEventListener('prechange', ({ target, tabItem }) => {
@@ -23,6 +29,7 @@ var App = function ()
 
     this.quickHelpRemainingSpan = [];
     this.remainingCardSpan = [];
+    this.selectedCharacterId = null;
 
     this.playerDetails =  [
         {
@@ -69,7 +76,7 @@ App.prototype.loadPage = function (page)
 
 App.prototype.joinRoom = function ()
 {
-    this.loadPage('interaction.html');
+    this.loadPage('pickcharacter.html');
 };
 
 App.prototype.toGame = function ()
@@ -84,33 +91,33 @@ App.prototype.toHelp = function ()
 
 App.prototype.setupGame = function ()
 {
-    var gameData = {};
+    var data = {};
 
-    gameData.tokenList = [];
+    data.tokenList = [];
     var i;
     for (i = 0; i < 30; i += 1)
     {
-        gameData.tokenList[i] = {
+        data.tokenList[i] = {
             "color": "red",
             "rotation": 5
         };
     }
 
-    gameData.playerDetails = app.playerDetails;
+    data.playerDetails = app.playerDetails;
 
-    gameData.cards = ["GUARD"];
+    data.cards = ["GUARD"];
 
-    gameData.cardPlayState = {"state": "GUESS", "target": 1 };
+    data.cardPlayState = {"state": "GUESS", "target": 1 };
 
-    gameData.remainingCards = [1, 2, 3, 4, 5, 6, 7, 1];
+    data.remainingCards = [1, 2, 3, 4, 5, 6, 7, 1];
 
     ReactDOM.render(
-        GameCarouselItems(gameData),
+        GameCarouselItems(data),
         document.getElementById('gameReact')
     );
 
     ReactDOM.render(
-        GameTopBar(gameData),
+        GameTopBar(data),
         document.getElementById('gameTopBarReact')
     );
 
@@ -129,11 +136,11 @@ App.prototype.gameNext = function ()
 
 App.prototype.setupHelp = function ()
 {
-    var helpData = {};
-    helpData.remainingCards = [1, 2, 3, 4, 5, 6, 7, 1];
+    var data = {};
+    data.remainingCards = [1, 2, 3, 4, 5, 6, 7, 1];
 
     ReactDOM.render(
-        getHelpElement(helpData),
+        getHelpElement(data),
         document.getElementById('helpReact')
     );
 
@@ -152,26 +159,62 @@ App.prototype.helpNext = function ()
 
 App.prototype.setupInteraction = function ()
 {
-    var interactionData = {};
+    var data = {};
 
-    interactionData.playerDetails = app.playerDetails;
-    interactionData.playerId = 1;
-    interactionData.playerTurn = 0;
-    interactionData.playerTarget = 1;
-    interactionData.playedCard = "BARON";
-    interactionData.otherCard = "KING";
-    interactionData.guessed = "PRINCE";
-    interactionData.interactionStatus = "CONTINUE";
-    interactionData.result = "LOSE";
-    interactionData.revealedCard = "GUARD";
-    interactionData.loser = 0;
-    interactionData.discard = "GUARD";
+    data.playerDetails = app.playerDetails;
+    data.playerId = 1;
+    data.playerTurn = 0;
+    data.playerTarget = 1;
+    data.playedCard = "PRINCE";
+    data.otherCard = "KING";
+    data.guessed = "PRINCE";
+    data.interactionStatus = "CONTINUE";
+    data.result = "LOSE";
+    data.revealedCard = "GUARD";
+    data.loser = 0;
+    data.discard = "GUARD";
 
     ReactDOM.render(
-        InteractionPageContent(interactionData),
+        InteractionPageContent(data),
         document.getElementById('interactionReact')
     );
 };
+
+App.prototype.setupRoundEnd = function ()
+{
+    var data = {};
+
+    data.playerDetails = app.playerDetails;
+    data.winnerIds = [1, 2];
+    data.finalCards = ["PRIEST", "KING", "PRIEST", "GUARD"];
+    data.hiddenCard = "BARON";
+
+    ReactDOM.render(
+        RoundEndPageContent(data),
+        document.getElementById('roundendReact')
+    );
+};
+
+App.prototype.setupPickCharacter = function ()
+{
+    var data = {};
+
+    data.playerDetails = app.playerDetails;
+    data.selectedCharacterId = app.selectedCharacterId;
+    data.alreadyPickedIds = [5, 10, 15];
+
+    ReactDOM.render(
+        PickCharacterPageContent(data),
+        document.getElementById('pickcharacterReact')
+    );
+};
+
+App.prototype.selectCharacter = function (id)
+{
+    this.selectedCharacterId = id;
+    this.setupPickCharacter();
+};
+
 
 var app = new App();
 

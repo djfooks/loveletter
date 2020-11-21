@@ -1,4 +1,15 @@
 
+function InteractionCard(props)
+{
+    return (
+        <ons-card>
+            <div className="interactionText">
+                {props.children}
+            </div>
+        </ons-card>
+    );
+}
+
 function CardName(props)
 {
     return <span className={"cardName cardName" + props.card}>{cardDetailsMap[props.card].name} ({cardDetailsMap[props.card].value})</span>;

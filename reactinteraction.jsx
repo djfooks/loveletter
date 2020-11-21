@@ -1,15 +1,4 @@
 
-function InteractionCard(props)
-{
-    return (
-        <ons-card>
-            <div className="interactionText">
-                {props.children}
-            </div>
-        </ons-card>
-    );
-}
-
 function PlayerDiscard(props)
 {
     return (
@@ -58,11 +47,11 @@ function InteractionPageContent(props)
     if (props.playedCard == "GUARD")
     {
         interaction = (
-                <InteractionCard>
-                    To target <PlayerCharacterName playerDetails={targetPlayerDetails} />
-                    and guessed<span className="hspacer"></span><CardName card={props.guessed} />
-                </InteractionCard>
-            );
+            <InteractionCard>
+                To target <PlayerCharacterName playerDetails={targetPlayerDetails} />
+                and guessed<span className="hspacer"></span><CardName card={props.guessed} />
+            </InteractionCard>
+        );
         waitingText = "Waiting for the big reveal";
     }
     else if (props.playedCard == "PRIEST" ||
@@ -71,32 +60,32 @@ function InteractionPageContent(props)
              props.playedCard == "KING")
     {
         interaction = (
-                <InteractionCard>
-                    To target <PlayerCharacterName playerDetails={targetPlayerDetails} />
-                </InteractionCard>
-            );
+            <InteractionCard>
+                To target <PlayerCharacterName playerDetails={targetPlayerDetails} />
+            </InteractionCard>
+        );
         waitingText = "Waiting for the big reveal";
     }
     else if (props.playedCard == "PRINCESS")
     {
         interaction = (
-                <PlayerEliminated playerDetails={turnPlayerDetails} />
-            );
+            <PlayerEliminated playerDetails={turnPlayerDetails} />
+        );
     }
 
+    var endTurn = null;
     var otherDetails = null;
     if (props.interactionStatus == "REVEAL" && props.playerTarget == props.playerId)
     {
         // TODO these states!
         otherDetails = (
-                <InteractionCard>
-                    <ons-button>Reveal</ons-button>
-                </InteractionCard>
-            );
+            <InteractionCard>
+                <ons-button>Reveal</ons-button>
+            </InteractionCard>
+        );
     }
     else if (props.interactionStatus == "CONTINUE")
     {
-        var endTurn;
         if (props.playerTurn == props.playerId)
         {
             endTurn = (
@@ -125,9 +114,8 @@ function InteractionPageContent(props)
             {
                 otherDetails = (
                     <React.Fragment>
-                        <PlayerDiscard playerDetails={targetPlayerDetails} card={props.guessed}/>
+                        <PlayerDiscard playerDetails={targetPlayerDetails} card={props.guessed} />
                         <PlayerEliminated playerDetails={targetPlayerDetails} />
-                        {endTurn}
                     </React.Fragment>
                 );
             }
@@ -138,7 +126,6 @@ function InteractionPageContent(props)
                         <InteractionCard>
                             The guess was incorrect
                         </InteractionCard>
-                        {endTurn}
                     </React.Fragment>
                 );
             }
@@ -150,7 +137,6 @@ function InteractionPageContent(props)
                 otherDetails = (
                     <React.Fragment>
                         <SecretReveal playerDetails={targetPlayerDetails} card={props.guessed} />
-                        {endTurn}
                     </React.Fragment>
                 );
             }
@@ -161,7 +147,6 @@ function InteractionPageContent(props)
                         <InteractionCard>
                             <PlayerCharacterName playerDetails={targetPlayerDetails} /> has secretly revealed their card
                         </InteractionCard>
-                        {endTurn}
                     </React.Fragment>
                 );
             }
@@ -219,11 +204,37 @@ function InteractionPageContent(props)
                             <InteractionCard>
                                 <PlayerCharacterName playerDetails={winnerPlayerDetails} /> wins!
                             </InteractionCard>
-                            <PlayerDiscard playerDetails={loserPlayerDetails} card={props.discarded}/>
-                            <PlayerEliminatedDiscard playerDetails={loserPlayerDetails} />
+                            <PlayerDiscard playerDetails={loserPlayerDetails} card={props.discard} />
+                            <PlayerEliminated playerDetails={loserPlayerDetails} />
                         </React.Fragment>
                     );
                 }
+            }
+        }
+        else if (props.playedCard == "PRINCE")
+        {
+            otherDetails = (
+                <React.Fragment>
+                    <PlayerDiscard playerDetails={targetPlayerDetails} card={props.discard} />
+                    {
+                        props.discard != "PRINCESS" ? null :
+                        <PlayerEliminated playerDetails={targetPlayerDetails} />
+                    }
+                </React.Fragment>
+            );
+        }
+        else if (props.playedCard == "KING")
+        {
+            if (props.playerTurn == props.playerId || props.playerTarget == props.playerId)
+            {
+                otherDetails = (
+                    <React.Fragment>
+                        <SecretReveal playerDetails={turnPlayerDetails} card={turnPlayerCard} />
+                        <SecretReveal playerDetails={targetPlayerDetails} card={targetPlayerCard} />
+                        <PlayerCharacterName playerDetails={turnPlayerDetails} /> now has <span className="hspacer"></span><CardName card={targetPlayerCard}/>
+                        <PlayerCharacterName playerDetails={targetPlayerDetails} /> now has <span className="hspacer"></span><CardName card={turnPlayerCard}/>
+                    </React.Fragment>
+                );
             }
         }
     }
@@ -255,6 +266,7 @@ function InteractionPageContent(props)
 
             {interaction}
             {otherDetails}
+            {endTurn}
         </React.Fragment>
     );
 }
