@@ -13,11 +13,22 @@ function GameCardItem(props)
     }
     else if (props.cardPlayState.state == "TURN")
     {
-        playState = (
-            <div className="cardPlayButtonDiv">
-                <ons-button onclick={handleClick}>Play</ons-button>
-            </div>
-        );
+        if (props.otherCard == "COUNTESS" && (props.card == "KING" || props.card == "PRINCE"))
+        {
+            playState = (
+                <div className="cardPlayButtonDiv">
+                    Must play <CardName card={"COUNTESS"} />
+                </div>
+            );
+        }
+        else
+        {
+            playState = (
+                <div className="cardPlayButtonDiv">
+                    <ons-button onclick={handleClick}>Play</ons-button>
+                </div>
+            );
+        }
     }
     else if (props.cardPlayState.state == "PLAYED")
     {
@@ -117,13 +128,16 @@ function PlayersList(props)
 {
     return props.playerDetails.map((playerDetails, index) =>
         <ons-list-item expandable key={playerDetails.name}>
-            <PlayerLine playerDetails={playerDetails} dropdown={true}>
+            <PlayerLine playerDetails={playerDetails} dropdown={playerDetails.discarded.length > 0}>
                 <span className="playerName">{playerDetails.name}</span>
             </PlayerLine>
-            <div className="expandable-content">
-                <div>Last played:</div>
-                <DiscardList cards={playerDetails.discarded} />
-            </div>
+            {
+                playerDetails.discarded.length == 0 ? null :
+                    <div className="expandable-content">
+                        <div>Last played:</div>
+                        <DiscardList cards={playerDetails.discarded} />
+                    </div>
+            }
         </ons-list-item>
     );
 }
@@ -133,7 +147,7 @@ function GameCarouselItems(props)
     var card1 = null;
     if (props.cards.length > 1)
     {
-        card1 = <GameCardItem card={props.cards[1]} cardId={1} playerDetails={props.playerDetails} cardPlayState={props.cardPlayState} remainingCards={props.remainingCards} />;
+        card1 = <GameCardItem card={props.cards[1]} cardId={1} otherCard={props.cards[0]} playerDetails={props.playerDetails} cardPlayState={props.cardPlayState} remainingCards={props.remainingCards} />;
     }
 
     return (
@@ -145,7 +159,7 @@ function GameCarouselItems(props)
                     </ons-list>
                 </ons-card>
             </ons-carousel-item>
-            <GameCardItem card={props.cards[0]} cardId={0} playerDetails={props.playerDetails} cardPlayState={props.cardPlayState} remainingCards={props.remainingCards} />
+            <GameCardItem card={props.cards[0]} cardId={0} otherCard={props.cards[1]} playerDetails={props.playerDetails} cardPlayState={props.cardPlayState} remainingCards={props.remainingCards} />
             {card1}
         </ons-carousel>
     );

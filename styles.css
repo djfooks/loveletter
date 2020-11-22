@@ -42,6 +42,16 @@
     border-width: thick;
 }
 
+.characterGridCellPicked
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: lightyellow;
+    border-style: solid;
+    border-width: thick;
+}
+
 .characterImg
 {
     width: 64px;

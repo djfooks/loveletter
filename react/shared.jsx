@@ -37,14 +37,19 @@ function PlayerCharacterName(props)
 
 function PlayerCharacter(props)
 {
+    if (props.playerDetails.characterId == null)
+    {
+        return null;
+    }
+
     var imgPath;
     if (props.playerDetails.state == "ALIVE" || props.playerDetails.state == "SAFE")
     {
-        imgPath = "img/characters/" + charactersMap[props.playerDetails.character];
+        imgPath = "img/characters/" + charactersMap[props.playerDetails.characterId];
     }
     else // DEAD
     {
-        imgPath = "img/dead-characters/" + charactersMap[props.playerDetails.character];
+        imgPath = "img/dead-characters/" + charactersMap[props.playerDetails.characterId];
     }
     return <img className="characterImg" src={imgPath}/>;
 }
