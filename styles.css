@@ -52,6 +52,12 @@
     border-width: thick;
 }
 
+.roomCodeSpan
+{
+    font-weight: bold;
+    padding-right: 7px;
+}
+
 .characterImg
 {
     width: 64px;

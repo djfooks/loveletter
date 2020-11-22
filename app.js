@@ -46,39 +46,6 @@ var App = function ()
         playerDetails: []
     };
 
-    /*
-    this.playerDetails =  [
-        {
-            "name": "DaveyGravey",
-            "tokens": [4, 5],
-            "discarded": ["GUARD", "PRINCE", "BARON"],
-            "character": 0,
-            "state": "ALIVE"
-        },
-        {
-            "name": "Jojo",
-            "tokens": [1, 7, 8],
-            "discarded": ["PRIEST", "KING", "BARON"],
-            "character": 5,
-            "state": "ALIVE"
-        },
-        {
-            "name": "Bob",
-            "tokens": [1, 7, 8],
-            "discarded": ["PRINCESS"],
-            "character": 10,
-            "state": "DEAD"
-        },
-        {
-            "name": "Harry",
-            "tokens": [1, 7, 8],
-            "discarded": [],
-            "character": 26,
-            "state": "SAFE"
-        }
-    ];
-    */
-
     this.localStorage = window.localStorage;
 
     this.key = this.localStorage.getItem('key');
@@ -163,12 +130,17 @@ App.prototype.setupGame = function ()
         };
     }
 
-    data.playerDetails = app.ui.playerDetails;
+    data.playerDetails = this.ui.playerDetails;
+    data.playerId = this.playerId;
+    data.gameState = this.gameState;
 
-    data.cards = ["GUARD"];
+    data.cards = [];
+    for (i = 0; i < this.hand.length; i += 1)
+    {
+        data.cards.push(cardTypes[this.hand[i]]);
+    }
 
     data.cardPlayState = {"state": "GUESS", "target": 1 };
-
     data.remainingCards = [1, 2, 3, 4, 5, 6, 7, 1];
 
     ReactDOM.render(
@@ -272,6 +244,11 @@ App.prototype.getAlreadyPickedCharacterIds = function ()
 
 App.prototype.setupPickCharacter = function ()
 {
+    if (!this.loadedPages.pickcharacter)
+    {
+        return;
+    }
+
     var data = {};
 
     data.playerDetails = this.ui.playerDetails;
@@ -284,6 +261,8 @@ App.prototype.setupPickCharacter = function ()
         document.getElementById('pickcharacterReact')
     );
     this.updatePickCharacterButton();
+
+    document.getElementById("pickCharacterRoomCodeSpan").innerHTML = this.getRoomCode();
 };
 
 App.prototype.selectCharacter = function (id)
@@ -361,6 +340,8 @@ App.prototype.createRoom = function ()
     xhr.open("GET", 'https://bzlzgmgcuh.execute-api.eu-west-2.amazonaws.com/default/loveletter-create');
     xhr.setRequestHeader("Content-Type", "text/plain");
     xhr.send();
+
+    document.getElementById("createRoomButton").disabled = true;
 };
 
 App.prototype.getRoomCode = function ()
@@ -393,7 +374,8 @@ App.prototype.disconnect = function ()
 App.prototype.onopen = function ()
 {
     this.send({ "cmd": "GET" });
-    this.loadPage("pickcharacter.html");
+    this.gameState = null;
+    document.getElementById("roomCodeSpan").innerHTML = this.getRoomCode();
 };
 
 App.prototype.start = function ()
@@ -427,6 +409,7 @@ App.prototype.onmessage = function (strData)
             {
                 this.pickedCharacterId = data.characterId;
                 this.loadPage("game.html");
+                this.setupGame();
             }
             else
             {
@@ -437,17 +420,16 @@ App.prototype.onmessage = function (strData)
         break;
         case "START_CARD":
         {
-            /*this.playerId = data.playerId;
-            this.addCard(data.pickup);*/
+            this.playerId = data.playerId;
+            this.addCard(data.pickup);
         }
         break;
         case "PICKUP":
         case "YOUR_TURN":
         {
             // clear your SAFE state
-            /*this.playerStates[this.playerId]["state"] = "ALIVE";
-            this.addCard(data.pickup);*/
-            // TODO update gui
+            this.playerStates[this.playerId]["state"] = "ALIVE";
+            this.addCard(data.pickup);
         }
         break;
         case "JOINED":
@@ -503,30 +485,54 @@ App.prototype.onmessage = function (strData)
     }
 };
 
+App.prototype.updateUIState = function (data)
+{
+    this.ui.playerDetails = [];
+    var i;
+    for (i = 0; i < data.players.length; i += 1)
+    {
+        var player = data.players[i];
+        var playerDetails = {
+            name: player.name,
+            characterId: player.characterId,
+            tokens: [],
+            state: "ALIVE",
+            discarded: []
+        };
+
+        if (data.playerStates)
+        {
+            var playerState = data.playerStates[i];
+            var j;
+            for (j = 0; j < playerState.wins; j += 1)
+            {
+                playerDetails.tokens.push(1);
+            }
+            for (j = 0; j < playerState.played; j += 1)
+            {
+                playerDetails.discarded.push(cardTypes[playerState.played[j]]);
+            }
+        }
+
+        this.ui.playerDetails.push(playerDetails);
+    }
+};
+
 App.prototype.gotFullState = function (data)
 {
     if (data.playerId !== undefined)
         this.playerId = data.playerId;
     this.numPlayers = data.players.length;
 
+    var prevGameState = this.gameState;
+    this.gameState = data.gamestate;
+
     if (data.gamestate == "LOGIN")
     {
-        // TODO update gui
-        this.ui.playerDetails = [];
-        var i;
-        for (i = 0; i < data.players.length; i += 1)
-        {
-            var player = data.players[i];
-            this.ui.playerDetails.push({
-                name: player.name,
-                characterId: player.characterId,
-                tokens: [],
-                state: "ALIVE",
-                discarded: []
-            });
-        }
+        this.updateUIState(data);
         this.pickedCharacterId = data.players[this.playerId].characterId;
         this.selectedCharacterId = this.pickedCharacterId;
+        this.loadPage("pickcharacter.html");
         this.setupPickCharacter();
     }
     else if (data.gamestate == "PLAYING")
@@ -535,9 +541,11 @@ App.prototype.gotFullState = function (data)
         this.turnId = data.turn;
         this.playerStates = data.playerStates;
         this.interaction = data.interaction;
-        // TODO update gui
+
+        this.updateUIState(data);
+        this.loadPage("game.html");
+        this.setupGame();
     }
-    // TODO update gui
 }
 
 App.prototype.discard = function (data)
@@ -587,7 +595,7 @@ App.prototype.addCard = function (card)
         }
     }
     this.hand.push(card);
-    // TODO update gui
+    this.setupGame();
 };
 
 App.prototype.roundComplete = function ()

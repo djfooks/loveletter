@@ -37,6 +37,7 @@ function GameCardItem(props)
                 Pick a target
                 <ons-list>
                 {props.playerDetails.map((playerDetails, index) =>
+                    (props.playerId == index) ? null :
                     <ons-list-item key={playerDetails.name}>
                         <PlayerLine playerDetails={playerDetails}>
                             {
@@ -128,18 +129,55 @@ function PlayersList(props)
 {
     return props.playerDetails.map((playerDetails, index) =>
         <ons-list-item expandable key={playerDetails.name}>
-            <PlayerLine playerDetails={playerDetails} dropdown={playerDetails.discarded.length > 0}>
+            <PlayerLine playerDetails={playerDetails} dropdown>
                 <span className="playerName">{playerDetails.name}</span>
             </PlayerLine>
-            {
-                playerDetails.discarded.length == 0 ? null :
-                    <div className="expandable-content">
-                        <div>Last played:</div>
-                        <DiscardList cards={playerDetails.discarded} />
-                    </div>
-            }
+            <div className="expandable-content">
+                {
+                    playerDetails.discarded.length == 0 ?
+                        (<div>Hi, I'm {playerDetails.name} and I {index == 0 ? "" : "also"} like to party</div>)
+                    :
+                        <React.Fragment>
+                            <div>Last played:</div>
+                            <DiscardList cards={playerDetails.discarded} />
+                        </React.Fragment>
+                }
+            </div>
         </ons-list-item>
     );
+}
+
+function StartGameCard(props)
+{
+    function handleStart()
+    {
+        app.start();
+    }
+
+    if (props.gameState != "LOGIN")
+        return null;
+
+    if (props.playerId == 0)
+    {
+        return (
+            <InteractionCard>
+                <ons-button onClick={handleStart}>Start Game</ons-button>
+            </InteractionCard>
+        );
+    }
+    else
+    {
+        return (
+            <ons-card>
+                <div className="interactionText">
+                    Waiting for game to start
+                </div>
+                <div className="interactionDots">
+                    <DotDotDot />
+                </div>
+            </ons-card>
+        );
+    }
 }
 
 function GameCarouselItems(props)
@@ -147,7 +185,7 @@ function GameCarouselItems(props)
     var card1 = null;
     if (props.cards.length > 1)
     {
-        card1 = <GameCardItem card={props.cards[1]} cardId={1} otherCard={props.cards[0]} playerDetails={props.playerDetails} cardPlayState={props.cardPlayState} remainingCards={props.remainingCards} />;
+        card1 = <GameCardItem card={props.cards[1]} cardId={1} otherCard={props.cards[0]} playerId={props.playerId} playerDetails={props.playerDetails} cardPlayState={props.cardPlayState} remainingCards={props.remainingCards} />;
     }
 
     return (
@@ -158,9 +196,15 @@ function GameCarouselItems(props)
                         <PlayersList playerDetails={props.playerDetails} tokenList={props.tokenList} />
                     </ons-list>
                 </ons-card>
+                <StartGameCard gameState={props.gameState} playerId={props.playerId} />
             </ons-carousel-item>
-            <GameCardItem card={props.cards[0]} cardId={0} otherCard={props.cards[1]} playerDetails={props.playerDetails} cardPlayState={props.cardPlayState} remainingCards={props.remainingCards} />
-            {card1}
+            {
+                props.cards.length == 0 ? null :
+                    <React.Fragment>
+                        <GameCardItem card={props.cards[0]} cardId={0} otherCard={props.cards[1]} playerId={props.playerId} playerDetails={props.playerDetails} cardPlayState={props.cardPlayState} remainingCards={props.remainingCards} />
+                        {card1}
+                    </React.Fragment>
+            }
         </ons-carousel>
     );
 }
@@ -173,7 +217,7 @@ function GameTopBar(props)
     }
 
     var cardsList = null;
-    if (props.cards)
+    if (props.cards.length > 0)
     {
         var card1 = null;
         if (props.cards.length > 1)
