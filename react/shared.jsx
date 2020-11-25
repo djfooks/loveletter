@@ -2,11 +2,11 @@
 function InteractionCard(props)
 {
     return (
-        <ons-card>
+        <Ons.Card>
             <div className="interactionText">
                 {props.children}
             </div>
-        </ons-card>
+        </Ons.Card>
     );
 }
 
@@ -37,13 +37,12 @@ function PlayerCharacterName(props)
 
 function PlayerCharacter(props)
 {
+    var imgPath;
     if (props.playerDetails.characterId == null)
     {
-        return null;
+        imgPath = "img/unknown-character.svg";
     }
-
-    var imgPath;
-    if (props.playerDetails.state == "ALIVE" || props.playerDetails.state == "SAFE")
+    else if (props.playerDetails.state == "ALIVE" || props.playerDetails.state == "SAFE")
     {
         imgPath = "img/characters/" + charactersMap[props.playerDetails.characterId];
     }

@@ -4,7 +4,7 @@ function QuickHelpList(props)
     return orderedCards.map((cardType, index) =>
         <div key={cardType}>
             <CardName card={cardType} />
-            <span className="alignRight">{props.remainingCards[index]} / {cardDetailsMap[cardType].numInDeck}</span>
+            <span className="alignRight">{props.playedCardTotals[index]} / {cardDetailsMap[cardType].numInDeck}</span>
             <br />
             <br />
         </div>
@@ -14,39 +14,39 @@ function QuickHelpList(props)
 function QuickHelpCard(props)
 {
     return (
-        <ons-card>
+        <Ons.Card>
             <span className="alignLeft">Card (value)</span>
-            <span className="alignRight">Remaining / In Deck</span><br/><br/>
-            <QuickHelpList remainingCards={props.remainingCards} />
-        </ons-card>
+            <span className="alignRight"># Played / # In Deck</span><br/><br/>
+            <QuickHelpList playedCardTotals={props.playedCardTotals} />
+        </Ons.Card>
     );
 }
 
 function HelpCardItems(props)
 {
     return orderedCards.map((cardType, index) =>
-        <ons-carousel-item key={cardType}>
-            <ons-card>
+        <Ons.CarouselItem key={cardType}>
+            <Ons.Card>
                 <CardImgAndDetails card={cardType} />
-                <div className="remainingText">Remaining {props.remainingCards[index]} / {cardDetailsMap[cardType].numInDeck}</div>
-            </ons-card>
-        </ons-carousel-item>
+                <div className="remainingText">Played {props.playedCardTotals[index]} / {cardDetailsMap[cardType].numInDeck}</div>
+            </Ons.Card>
+        </Ons.CarouselItem>
     );
 }
 
 function HelpCarouselItems(props)
 {
     return (
-        <ons-carousel id="helpCarousel" fullscreen swipeable auto-scroll auto-scroll-ratio="0.1">
-            <ons-carousel-item>
-                <QuickHelpCard remainingCards={props.remainingCards} />
-            </ons-carousel-item>
-            <HelpCardItems remainingCards={props.remainingCards} />
-        </ons-carousel>
+        <Ons.Carousel id="helpCarousel" fullscreen swipeable auto-scroll auto-scroll-ratio="0.1">
+            <Ons.CarouselItem>
+                <QuickHelpCard playedCardTotals={props.playedCardTotals} />
+            </Ons.CarouselItem>
+            <HelpCardItems playedCardTotals={props.playedCardTotals} />
+        </Ons.Carousel>
     );
 }
 
 function getHelpElement(helpData)
 {
-    return <HelpCarouselItems remainingCards={helpData.remainingCards} />;
+    return <HelpCarouselItems playedCardTotals={helpData.playedCardTotals} />;
 }

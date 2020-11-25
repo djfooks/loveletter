@@ -1,9 +1,24 @@
 
 function GameCardItem(props)
 {
-    function handleClick()
+    function handlePlayCardClick()
     {
-        app.playCard(props.cardId);
+        app.pickCard(props.handCardId);
+    }
+
+    function handlePickTargetClick(targetId)
+    {
+        app.pickTarget(targetId);
+    }
+
+    function handleNoValidTargetClick()
+    {
+        app.pickTarget(-1);
+    }
+
+    function handlePickGuessClick(guessCardType)
+    {
+        app.pickGuess(guessCardType);
     }
 
     var playState;
@@ -16,74 +31,112 @@ function GameCardItem(props)
         if (props.otherCard == "COUNTESS" && (props.card == "KING" || props.card == "PRINCE"))
         {
             playState = (
-                <div className="cardPlayButtonDiv">
-                    Must play <CardName card={"COUNTESS"} />
-                </div>
+                <Ons.Card>
+                    <div className="cardPlayButtonDiv">
+                        Must play <CardName card={"COUNTESS"} />
+                    </div>
+                </Ons.Card>
             );
         }
         else
         {
             playState = (
-                <div className="cardPlayButtonDiv">
-                    <ons-button onclick={handleClick}>Play</ons-button>
-                </div>
+                <Ons.Card>
+                    <div className="cardPlayButtonDiv">
+                        <Ons.Button onclick={handleClick}>Play</Ons.Button>
+                    </div>
+                </Ons.Card>
             );
         }
     }
     else if (props.cardPlayState.state == "PLAYED")
     {
-        playState = (
-            <div className="cardPlayButtonDiv">
-                Pick a target
-                <ons-list>
-                {props.playerDetails.map((playerDetails, index) =>
-                    (props.playerId == index) ? null :
-                    <ons-list-item key={playerDetails.name}>
-                        <PlayerLine playerDetails={playerDetails}>
+        var anyValidTargets = true;
+        var targetList = props.playerDetails.map(function(playerDetails, index)
+            {
+                anyValidTargets = anyValidTargets && playerDetails.state == "ALIVE";
+                return ((props.playerId == index) ? null :
+                    <Ons.ListItem key={playerDetails.name}>
+                        <PlayerLine playerDetails={playerDetails} hasDropdown={false}>
                             {
                                 playerDetails.state != "ALIVE" ?
                                     (<span className="playerName">{playerDetails.name}</span>) :
-                                    (<ons-button>{playerDetails.name}</ons-button>)
+                                    (<Ons.Button onClick={(e) => handlePickTargetClick(index, e)} >{playerDetails.name}</Ons.Button>)
                             }
                         </PlayerLine>
-                    </ons-list-item>
-                )}
-                </ons-list>
-            </div>
+                    </Ons.ListItem>
+                );
+            }
+        );
+
+        playState = (
+            <React.Fragment>
+                <Ons.Card>
+                    <div className="interactionText">
+                        Pick a target
+                    </div>
+                </Ons.Card>
+                <Ons.Card>
+                    <Ons.List>
+                        {targetList}
+                        {anyValidTargets ? null :
+                            <Ons.ListItem>
+                                <div className="center">
+                                    <Ons.Button>No valid target</Ons.Button>
+                                </div>
+                            </Ons.ListItem>
+                        }
+                    </Ons.List>
+                </Ons.Card>
+            </React.Fragment>
         );
     }
     else if (props.cardPlayState.state == "GUESS")
     {
         var targetPlayerDetails = props.playerDetails[props.cardPlayState.target];
         playState = (
-            <div>
-                <div className="interactionText">
-                    Guess what card <PlayerCharacterName playerDetails={targetPlayerDetails} /> has
-                </div>
-                <ons-list>
-                    {
-                        orderedCards.map((cardType, index) =>
-                            (cardType == "GUARD") ? null :
-                            <ons-list-item key={index}>
-                                <CardName card={cardType} />
-                                <div className="right">
-                                    <ons-button>Pick ({props.remainingCards[index]} / {cardDetailsMap[cardType].numInDeck})</ons-button>
-                                </div>
-                            </ons-list-item>
-                        )
-                    }
-                </ons-list>
-            </div>
+            <React.Fragment>
+                <Ons.Card>
+                    <div className="interactionText">
+                        Guess what card <PlayerCharacterName playerDetails={targetPlayerDetails} /> has
+                    </div>
+                </Ons.Card>
+                <Ons.Card>
+                    <Ons.List>
+                        <Ons.ListItem>
+                            <div className="right">
+                                (# Played / # In Deck)
+                            </div>
+                        </Ons.ListItem>
+                        {
+                            orderedCards.map((cardType, index) =>
+                                (cardType == "GUARD") ? null :
+                                <Ons.ListItem key={index}>
+                                    <CardName card={cardType} />
+                                    <div className="right">
+                                        <Ons.Button onClick={(e) => handlePickGuessClick(cardType, e)}>Pick ({props.playedCardTotals[index]} / {cardDetailsMap[cardType].numInDeck})</Ons.Button>
+                                    </div>
+                                </Ons.ListItem>
+                            )
+                        }
+                        <Ons.ListItem>
+                            <div className="center">
+                                <Ons.Button>Back</Ons.Button>
+                            </div>
+                        </Ons.ListItem>
+                    </Ons.List>
+                </Ons.Card>
+            </React.Fragment>
         );
     }
 
     return (
-        <ons-carousel-item>
-            <ons-card>
+        <Ons.CarouselItem>
+            <Ons.Card>
                 <CardImgAndDetails card={props.card} />
-                {playState}
-            </ons-card>
-        </ons-carousel-item>
+            </Ons.Card>
+            {playState}
+        </Ons.CarouselItem>
     );
 }
 
@@ -119,31 +172,51 @@ function PlayerLine(props)
             <div className="right">
                 <Tokens tokens={props.playerDetails.tokens} />
                 <span className="gemPadding"></span>
-                {props.dropdown ? <span className="list-item__expand-chevron"></span> : null}
+                {
+                    props.hasDropdown ?
+                        <span className="list-item__expand-chevron"></span>
+                        : null
+                }
             </div>
         </React.Fragment>
     );
 }
 
+function OptionalDropdownListItem(props)
+{
+    if (props.hasDropdown)
+    {
+        return (
+            <Ons.ListItem expandable>
+                {props.children}
+            </Ons.ListItem>
+        );
+    }
+    else
+    {
+        return (
+            <Ons.ListItem>
+                {props.children}
+            </Ons.ListItem>
+        );
+    }
+}
+
 function PlayersList(props)
 {
     return props.playerDetails.map((playerDetails, index) =>
-        <ons-list-item expandable key={playerDetails.name}>
-            <PlayerLine playerDetails={playerDetails} dropdown>
+        <OptionalDropdownListItem hasDropdown={playerDetails.discarded.length > 0} key={playerDetails.name}>
+            <PlayerLine playerDetails={playerDetails} hasDropdown={playerDetails.discarded.length > 0}>
                 <span className="playerName">{playerDetails.name}</span>
             </PlayerLine>
-            <div className="expandable-content">
-                {
-                    playerDetails.discarded.length == 0 ?
-                        (<div>Hi, I'm {playerDetails.name} and I {index == 0 ? "" : "also"} like to party</div>)
-                    :
-                        <React.Fragment>
-                            <div>Last played:</div>
-                            <DiscardList cards={playerDetails.discarded} />
-                        </React.Fragment>
-                }
-            </div>
-        </ons-list-item>
+            {
+                playerDetails.discarded.length == 0 ? null :
+                    <div className="expandable-content">
+                        <div>Last played:</div>
+                        <DiscardList cards={playerDetails.discarded} />
+                    </div>
+            }
+        </OptionalDropdownListItem>
     );
 }
 
@@ -161,21 +234,21 @@ function StartGameCard(props)
     {
         return (
             <InteractionCard>
-                <ons-button onClick={handleStart}>Start Game</ons-button>
+                <Ons.Button onClick={handleStart}>Start Game</Ons.Button>
             </InteractionCard>
         );
     }
     else
     {
         return (
-            <ons-card>
+            <Ons.Card>
                 <div className="interactionText">
                     Waiting for game to start
                 </div>
                 <div className="interactionDots">
                     <DotDotDot />
                 </div>
-            </ons-card>
+            </Ons.Card>
         );
     }
 }
@@ -185,27 +258,25 @@ function GameCarouselItems(props)
     var card1 = null;
     if (props.cards.length > 1)
     {
-        card1 = <GameCardItem card={props.cards[1]} cardId={1} otherCard={props.cards[0]} playerId={props.playerId} playerDetails={props.playerDetails} cardPlayState={props.cardPlayState} remainingCards={props.remainingCards} />;
+        card1 = <GameCardItem card={props.cards[1]} handCardId={1} otherCard={props.cards[0]} playerId={props.playerId} playerDetails={props.playerDetails} cardPlayState={props.cardPlayState} playedCardTotals={props.playedCardTotals} />;
     }
 
     return (
-        <ons-carousel id="gameCarousel" fullscreen swipeable auto-scroll auto-scroll-ratio="0.1">
-            <ons-carousel-item>
-                <ons-card>
-                    <ons-list>
-                        <PlayersList playerDetails={props.playerDetails} tokenList={props.tokenList} />
-                    </ons-list>
-                </ons-card>
+        <Ons.Carousel id="gameCarousel" fullscreen swipeable auto-scroll auto-scroll-ratio="0.1">
+            <Ons.CarouselItem>
+                <Ons.Card>
+                    <PlayersList playerDetails={props.playerDetails} tokenList={props.tokenList} />
+                </Ons.Card>
                 <StartGameCard gameState={props.gameState} playerId={props.playerId} />
-            </ons-carousel-item>
+            </Ons.CarouselItem>
             {
                 props.cards.length == 0 ? null :
                     <React.Fragment>
-                        <GameCardItem card={props.cards[0]} cardId={0} otherCard={props.cards[1]} playerId={props.playerId} playerDetails={props.playerDetails} cardPlayState={props.cardPlayState} remainingCards={props.remainingCards} />
+                        <GameCardItem card={props.cards[0]} handCardId={0} otherCard={props.cards[1]} playerId={props.playerId} playerDetails={props.playerDetails} cardPlayState={props.cardPlayState} playedCardTotals={props.playedCardTotals} />
                         {card1}
                     </React.Fragment>
             }
-        </ons-carousel>
+        </Ons.Carousel>
     );
 }
 

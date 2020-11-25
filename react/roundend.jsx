@@ -21,23 +21,23 @@ function RoundEndPlayersListItem(props)
 function RoundEndPlayersList(props)
 {
     return props.playerDetails.map((playerDetails, index) =>
-        <ons-list-item key={index}>
+        <Ons.ListItem key={index}>
             <RoundEndPlayersListItem finalCard={props.finalCards[index]} playerDetails={playerDetails}/>
-        </ons-list-item>
+        </Ons.ListItem>
     );
 }
 
 function WinnersCards(props)
 {
     return props.winnerIds.map((id, index) =>
-        <ons-card key={id}>
-            <ons-list-item>
+        <Ons.Card key={id}>
+            <Ons.ListItem>
                 <PlayerCharacterName playerDetails={props.playerDetails[id]} /> wins the round!
                 <div className="right">
-                    <ons-button>New round</ons-button>
+                    <Ons.Button>New round</Ons.Button>
                 </div>
-            </ons-list-item>
-        </ons-card>
+            </Ons.ListItem>
+        </Ons.Card>
     );
 }
 
@@ -45,11 +45,11 @@ function RoundEndPageContent(props)
 {
     return (
         <React.Fragment>
-            <ons-card>
-                <ons-list>
+            <Ons.Card>
+                <Ons.List>
                     <RoundEndPlayersList finalCards={props.finalCards} playerDetails={props.playerDetails}/>
-                </ons-list>
-            </ons-card>
+                </Ons.List>
+            </Ons.Card>
             <WinnersCards playerDetails={props.playerDetails} winnerIds={props.winnerIds}/>
         </React.Fragment>
     );

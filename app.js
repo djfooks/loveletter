@@ -141,7 +141,7 @@ App.prototype.setupGame = function ()
     }
 
     data.cardPlayState = {"state": "GUESS", "target": 1 };
-    data.remainingCards = [1, 2, 3, 4, 5, 6, 7, 1];
+    data.playedCardTotals = [5, 2, 1, 0, 1, 0, 1, 0];
 
     ReactDOM.render(
         GameCarouselItems(data),
@@ -169,7 +169,7 @@ App.prototype.gameNext = function ()
 App.prototype.setupHelp = function ()
 {
     var data = {};
-    data.remainingCards = [1, 2, 3, 4, 5, 6, 7, 1];
+    data.playedCardTotals = [5, 2, 1, 0, 1, 0, 1, 0];
 
     ReactDOM.render(
         getHelpElement(data),
@@ -361,6 +361,13 @@ App.prototype.connect = function ()
     };
     this.websocket.onmessage = function (event) {
         that.onmessage(event.data);
+    };
+    this.websocket.onclose = function (event) {
+        document.getElementById('joinRoomButton').disabled = false;
+    };
+    this.websocket.onerror = function (event) {
+        ons.notification.toast('Failed connecting to room code "' + that.getRoomCode() + '"', { timeout: 5000, animation: 'fall' });
+        that.roomCodeInput.value = "";
     };
 };
 

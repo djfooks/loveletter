@@ -6,9 +6,9 @@ function PlayerDiscard(props)
             <InteractionCard>
                 <PlayerCharacterName playerDetails={props.playerDetails} /> discarded
             </InteractionCard>
-            <ons-card>
+            <Ons.Card>
                 <CardImgAndDetails card={props.card} />
-            </ons-card>
+            </Ons.Card>
         </React.Fragment>
     );
 }
@@ -30,9 +30,9 @@ function SecretReveal(props)
             <InteractionCard>
                 <PlayerCharacterName playerDetails={props.playerDetails} /> secretly reveals
             </InteractionCard>
-            <ons-card>
+            <Ons.Card>
                 <CardImgAndDetails card={props.card} />
-            </ons-card>
+            </Ons.Card>
         </React.Fragment>
     );
 }
@@ -80,7 +80,7 @@ function InteractionPageContent(props)
         // TODO these states!
         otherDetails = (
             <InteractionCard>
-                <ons-button>Reveal</ons-button>
+                <Ons.Button>Reveal</Ons.Button>
             </InteractionCard>
         );
     }
@@ -90,21 +90,21 @@ function InteractionPageContent(props)
         {
             endTurn = (
                 <InteractionCard>
-                    <ons-button>End Turn</ons-button>
+                    <Ons.Button>End Turn</Ons.Button>
                 </InteractionCard>
             );
         }
         else
         {
             endTurn = (
-                <ons-card>
+                <Ons.Card>
                     <div className="interactionText">
                         Waiting for turn to end
                     </div>
                     <div className="interactionDots">
                         <DotDotDot />
                     </div>
-                </ons-card>
+                </Ons.Card>
             );
         }
 
@@ -241,28 +241,28 @@ function InteractionPageContent(props)
     else
     {
         otherDetails = (
-            <ons-card>
+            <Ons.Card>
                 <div className="interactionText">
                     {waitingText}
                 </div>
                 <div className="interactionDots">
                     <DotDotDot />
                 </div>
-            </ons-card>
+            </Ons.Card>
         );
     }
 
     return (
         <React.Fragment>
-            <ons-card>
+            <Ons.Card>
                 <div className="interactionText">
                     <PlayerCharacterName playerDetails={turnPlayerDetails} /> played
                 </div>
-            </ons-card>
+            </Ons.Card>
 
-            <ons-card>
+            <Ons.Card>
                 <CardImgAndDetails card={props.playedCard} />
-            </ons-card>
+            </Ons.Card>
 
             {interaction}
             {otherDetails}
