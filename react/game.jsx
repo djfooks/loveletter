@@ -21,12 +21,17 @@ function GameCardItem(props)
         app.pickGuess(guessCardType);
     }
 
+    function handleBackClick()
+    {
+        app.playBack();
+    }
+
     var playState;
     if (props.cardPlayState.state == "WAIT")
     {
         playState = null;
     }
-    else if (props.cardPlayState.state == "TURN")
+    else if (props.cardPlayState.state == "TURN" || props.cardPlayState.handCardId != props.handCardId)
     {
         if (props.otherCard == "COUNTESS" && (props.card == "KING" || props.card == "PRINCE"))
         {
@@ -43,7 +48,7 @@ function GameCardItem(props)
             playState = (
                 <Ons.Card>
                     <div className="cardPlayButtonDiv">
-                        <Ons.Button onclick={handleClick}>Play</Ons.Button>
+                        <Ons.Button onClick={handlePlayCardClick}>Play</Ons.Button>
                     </div>
                 </Ons.Card>
             );
@@ -82,11 +87,14 @@ function GameCardItem(props)
                         {anyValidTargets ? null :
                             <Ons.ListItem>
                                 <div className="center">
-                                    <Ons.Button>No valid target</Ons.Button>
+                                    <Ons.Button onClick={handleNoValidTargetClick}>No valid target</Ons.Button>
                                 </div>
                             </Ons.ListItem>
                         }
                     </Ons.List>
+                    <div className="cardPlayButtonDiv">
+                        <Ons.Button onClick={handleBackClick}>Back</Ons.Button>
+                    </div>
                 </Ons.Card>
             </React.Fragment>
         );
@@ -114,16 +122,14 @@ function GameCardItem(props)
                                 <Ons.ListItem key={index}>
                                     <CardName card={cardType} />
                                     <div className="right">
-                                        <Ons.Button onClick={(e) => handlePickGuessClick(cardType, e)}>Pick ({props.playedCardTotals[index]} / {cardDetailsMap[cardType].numInDeck})</Ons.Button>
+                                        <Ons.Button onClick={(e) => handlePickGuessClick(cardType, e)}>Pick ({props.discardedCardTotals[index]} / {cardDetailsMap[cardType].numInDeck})</Ons.Button>
                                     </div>
                                 </Ons.ListItem>
                             )
                         }
-                        <Ons.ListItem>
-                            <div className="center">
-                                <Ons.Button>Back</Ons.Button>
-                            </div>
-                        </Ons.ListItem>
+                        <div className="cardPlayButtonDiv">
+                            <Ons.Button onClick={handleBackClick}>Back</Ons.Button>
+                        </div>
                     </Ons.List>
                 </Ons.Card>
             </React.Fragment>
@@ -253,17 +259,50 @@ function StartGameCard(props)
     }
 }
 
+function TopLine(props)
+{
+    var i;
+    var totalDiscards = 0;
+    for (i = 0; i < props.discardedCardTotals.length; i += 1)
+    {
+        totalDiscards += props.discardedCardTotals[i];
+    }
+    var cardsLeft = cardTypes.length - 1 - totalDiscards;
+    if (cardsLeft < 5)
+    {
+        return (
+            <Ons.Card>
+                <div className="cardsLeft">
+                    {cardsLeft} cards left{cardsLeft <= 2 ? "!" : "..."}
+                </div>
+            </Ons.Card>
+        );
+    }
+    else
+    {
+        return null;
+    }
+}
+
 function GameCarouselItems(props)
 {
     var card1 = null;
     if (props.cards.length > 1)
     {
-        card1 = <GameCardItem card={props.cards[1]} handCardId={1} otherCard={props.cards[0]} playerId={props.playerId} playerDetails={props.playerDetails} cardPlayState={props.cardPlayState} playedCardTotals={props.playedCardTotals} />;
+        card1 = <GameCardItem
+            card={props.cards[1]}
+            handCardId={1}
+            otherCard={props.cards[0]}
+            playerId={props.playerId}
+            playerDetails={props.playerDetails}
+            cardPlayState={props.cardPlayState}
+            discardedCardTotals={props.discardedCardTotals} />;
     }
 
     return (
         <Ons.Carousel id="gameCarousel" fullscreen swipeable auto-scroll auto-scroll-ratio="0.1">
             <Ons.CarouselItem>
+                <TopLine discardedCardTotals={props.discardedCardTotals} />
                 <Ons.Card>
                     <PlayersList playerDetails={props.playerDetails} tokenList={props.tokenList} />
                 </Ons.Card>
@@ -272,7 +311,14 @@ function GameCarouselItems(props)
             {
                 props.cards.length == 0 ? null :
                     <React.Fragment>
-                        <GameCardItem card={props.cards[0]} handCardId={0} otherCard={props.cards[1]} playerId={props.playerId} playerDetails={props.playerDetails} cardPlayState={props.cardPlayState} playedCardTotals={props.playedCardTotals} />
+                        <GameCardItem
+                            card={props.cards[0]}
+                            handCardId={0}
+                            otherCard={props.cards[1]}
+                            playerId={props.playerId}
+                            playerDetails={props.playerDetails}
+                            cardPlayState={props.cardPlayState}
+                            discardedCardTotals={props.discardedCardTotals} />
                         {card1}
                     </React.Fragment>
             }

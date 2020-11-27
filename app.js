@@ -45,6 +45,7 @@ var App = function ()
     this.ui = {
         playerDetails: []
     };
+    this.cardPlayStateReset();
 
     this.localStorage = window.localStorage;
 
@@ -140,8 +141,8 @@ App.prototype.setupGame = function ()
         data.cards.push(cardTypes[this.hand[i]]);
     }
 
-    data.cardPlayState = {"state": "GUESS", "target": 1 };
-    data.playedCardTotals = [5, 2, 1, 0, 1, 0, 1, 0];
+    data.cardPlayState = this.cardPlayState;
+    data.discardedCardTotals = [5, 2, 1, 0, 1, 0, 1, 0];
 
     ReactDOM.render(
         GameCarouselItems(data),
@@ -169,7 +170,7 @@ App.prototype.gameNext = function ()
 App.prototype.setupHelp = function ()
 {
     var data = {};
-    data.playedCardTotals = [5, 2, 1, 0, 1, 0, 1, 0];
+    data.discardedCardTotals = [5, 2, 1, 0, 1, 0, 1, 0];
 
     ReactDOM.render(
         getHelpElement(data),
@@ -502,7 +503,7 @@ App.prototype.updateUIState = function (data)
         var playerDetails = {
             name: player.name,
             characterId: player.characterId,
-            tokens: [],
+            tokens: [3,4,5],
             state: "ALIVE",
             discarded: []
         };
@@ -515,13 +516,72 @@ App.prototype.updateUIState = function (data)
             {
                 playerDetails.tokens.push(1);
             }
-            for (j = 0; j < playerState.played; j += 1)
+            for (j = 0; j < playerState.played.length; j += 1)
             {
                 playerDetails.discarded.push(cardTypes[playerState.played[j]]);
             }
         }
 
         this.ui.playerDetails.push(playerDetails);
+    }
+};
+
+App.prototype.cardPlayStateReset = function ()
+{
+    this.cardPlayState = {state: "WAIT", "handCardId": -1};
+};
+
+App.prototype.pickCard = function (handCardId)
+{
+    this.cardPlayState.handCardId = handCardId;
+    var cardType = cardTypes[this.hand[handCardId]];
+    if (cardType == "GUARD" ||
+        cardType == "PRIEST" ||
+        cardType == "BARON" ||
+        cardType == "PRINCE" ||
+        cardType == "KING")
+    {
+        this.cardPlayState.state = "PLAYED";
+        this.setupGame();
+    }
+    else
+    {
+        this.sendPlayCard(handCardId);
+    }
+};
+
+App.prototype.pickTarget = function (targetId)
+{
+    var cardType = cardTypes[this.hand[this.cardPlayState.handCardId]];
+    if (cardType == "GUARD")
+    {
+        this.cardPlayState.target = targetId;
+        this.cardPlayState.state = "GUESS";
+        this.setupGame();
+    }
+    else
+    {
+        this.sendPlayCard(this.cardPlayState.handCardId, targetId);
+    }
+};
+
+App.prototype.pickGuess = function (guess)
+{
+    this.sendPlayCard(this.cardPlayState.handCardId, this.cardPlayState.target, guess);
+};
+
+App.prototype.playBack = function ()
+{
+    if (this.cardPlayState.state == "PLAYED")
+    {
+        this.cardPlayState.target = null;
+        this.cardPlayState.state = "TURN";
+        this.setupGame();
+    }
+    else if (this.cardPlayState.state = "GUESS")
+    {
+        this.cardPlayState.state = "PLAYED";
+        this.setupGame();
     }
 };
 
@@ -539,6 +599,7 @@ App.prototype.gotFullState = function (data)
         this.updateUIState(data);
         this.pickedCharacterId = data.players[this.playerId].characterId;
         this.selectedCharacterId = this.pickedCharacterId;
+        this.cardPlayStateReset();
         this.loadPage("pickcharacter.html");
         this.setupPickCharacter();
     }
@@ -548,7 +609,7 @@ App.prototype.gotFullState = function (data)
         this.turnId = data.turn;
         this.playerStates = data.playerStates;
         this.interaction = data.interaction;
-
+        this.cardPlayState = {state: this.turnId == this.playerId ? "TURN" : "WAIT"};
         this.updateUIState(data);
         this.loadPage("game.html");
         this.setupGame();
@@ -567,7 +628,6 @@ App.prototype.discard = function (data)
             {
                 playerState.played.push(data.card);
                 this.hand.splice(i, 1);
-                // TODO update gui
             }
         }
     }
@@ -575,7 +635,6 @@ App.prototype.discard = function (data)
     {
         playerState.played.push(data.card);
     }
-    // TODO update gui
 };
 
 App.prototype.nextTurn = function (data)
@@ -607,12 +666,6 @@ App.prototype.addCard = function (card)
 
 App.prototype.roundComplete = function ()
 {
-};
-
-App.prototype.playCard = function (cardId)
-{
-    // TODO update cardPlayState
-    this.sendPlayCard(cardId);
 };
 
 App.prototype.pickPlayer = function (pickedId)

@@ -137,6 +137,16 @@
     align-items: center;
 }
 
+.cardsLeft
+{
+    font-weight: bold;
+    padding-right: 7px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .remainingText
 {
     text-align: center;
