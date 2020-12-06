@@ -1,4 +1,4 @@
-var charactersMap = [
+export const charactersMap : string[] = [
     "001-centaur.svg",
     "002-kraken.svg",
     "003-dinosaur.svg",

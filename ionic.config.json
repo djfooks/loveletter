@@ -1,0 +1,7 @@
+{
+  "name": "ionic-loveletter",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react"
+}
