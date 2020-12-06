@@ -20,11 +20,56 @@ ion-card {
     float: right;
 }
 
-.interactionText
+.verticalAlignMiddle
 {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    vertical-align: middle;
+}
+
+.playerTopLine
+{
+    width: 100%;
+    height: 64px;
+}
+
+.playerTopLineLeft
+{
+    float: left;
+}
+
+.playerTopLineRight
+{
+    float: right;
+}
+
+.fullBox
+{
+    width: 100%;
+    height: max-content;
+}
+
+.myCard
+{
+    width: 97%;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #d4d4d4;
+    border-radius: 4px;
+    box-shadow: 2px 2px #c9c9c9;
+    margin-left: 1.5%;
+    margin-top: 1%;
+    padding: 4px;
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+
+.interactionText
+{   
+    text-align: center;
 }
 
 .characterGridCell
@@ -73,6 +118,7 @@ ion-card {
 .characterImg
 {
     width: 64px;
+    vertical-align: middle;
 }
 
 .playerName
@@ -84,11 +130,13 @@ ion-card {
 .statusImg
 {
     width: 32px;
+    vertical-align: middle;
 }
 
 .gemImg
 {
     width: 32px;
+    vertical-align: middle;
 }
 
 .gemPadding

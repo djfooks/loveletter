@@ -18,14 +18,23 @@ export interface PlayerDetails {
     discarded: string[];
 }
 
+export function LVCard(props : {children: any})
+{
+    return (
+        <div className="myCard">
+            {props.children}
+        </div>
+    );
+}
+
 export function InteractionCard(props : {children: any})
 {
     return (
-        <IonCard>
+        <div className="myCard">
             <div className="interactionText">
                 {props.children}
             </div>
-        </IonCard>
+        </div>
     );
 }
 
