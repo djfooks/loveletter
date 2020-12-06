@@ -1,19 +1,17 @@
 import {
     IonButtons, 
-    IonCard, 
     IonContent, 
     IonHeader,
     IonMenuButton,
     IonPage,
     IonTitle,
     IonToolbar,
-    IonItem,
     IonSlides,
     IonSlide} from '@ionic/react';
 import React from 'react';
 import { cardDetailsMap, orderedCards } from '../cards';
 import './Page.css';
-import { CardImgAndDetails, CardName, PlayedCardTotals } from '../Shared'
+import { CardImgAndDetails, CardName, PlayedCardTotals, LVCard } from '../Shared'
 
 function QuickHelpList(props : {playedCardTotals: PlayedCardTotals})
 {
@@ -31,11 +29,11 @@ function QuickHelpList(props : {playedCardTotals: PlayedCardTotals})
 function QuickHelpCard(props : {playedCardTotals: PlayedCardTotals})
 {
     return (
-        <IonCard>
+        <LVCard>
             <span className="alignLeft">Card (value)</span>
             <span className="alignRight"># Played / # In Deck</span><br/><br/>
             <QuickHelpList playedCardTotals={props.playedCardTotals} />
-        </IonCard>
+        </LVCard>
     );
 }
 
@@ -43,26 +41,14 @@ function HelpCardItems()
 {
     return (<>{orderedCards.map((cardType, index) =>
         <IonSlide key={cardType}>
-            <IonCard>
+            <LVCard>
                 <CardImgAndDetails card={cardType} />
-            </IonCard>
+            </LVCard>
         </IonSlide>
     )}</>)
 }
 
 const HelpPage: React.FC = () => {
-    var items = [];
-    var i;
-    for (i = 0; i < 300; i += 1)
-    {
-        items[i] = 
-        <IonItem key={i}>
-            <IonCard>
-                Hello!
-            </IonCard>
-        </IonItem>;
-    }
-
     return (
     <IonPage>
         <IonHeader>

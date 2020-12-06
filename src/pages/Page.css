@@ -55,7 +55,8 @@ ion-card {
     border-color: #d4d4d4;
     border-radius: 4px;
     box-shadow: 2px 2px #c9c9c9;
-    margin-left: 1.5%;
+    margin-left: auto;
+    margin-right: auto;
     margin-top: 1%;
     padding: 4px;
     -webkit-touch-callout: none; /* iOS Safari */
@@ -141,7 +142,7 @@ ion-card {
 
 .gemPadding
 {
-    width: 16px;
+    margin-right: 16px;
 }
 
 .cardImg

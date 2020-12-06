@@ -11,6 +11,7 @@ import './Page.css';
 import { caretForwardCircleOutline } from 'ionicons/icons';
 import GamePage from './GamePage';
 import CardPage from './CardPage';
+import { CardName } from '../Shared';
 
 const GameTabPage: React.FC = () => {
     return (
@@ -18,7 +19,8 @@ const GameTabPage: React.FC = () => {
         <IonRouterOutlet>
             <Redirect exact path="/tabs" to="/tabs/card" />
             <Route path="/tabs/game" render={() => <GamePage />} exact />
-            <Route path="/tabs/card/:handId" component={CardPage} exact={true} />
+            <Route path="/tabs/card" component={CardPage} />
+            <Route path="/tabs/card/:handId" component={CardPage} />
         </IonRouterOutlet>
         <IonTabBar slot="bottom">
             <IonTabButton tab="game" href="/tabs/game">
@@ -26,10 +28,10 @@ const GameTabPage: React.FC = () => {
                 <IonLabel>Table</IonLabel>
             </IonTabButton>
             <IonTabButton tab="card0" href="/tabs/card/0">
-                <IonLabel>Card 0</IonLabel>
+                <CardName card="PRINCE"></CardName>
             </IonTabButton>
             <IonTabButton tab="card1" href="/tabs/card/1">
-                <IonLabel>Card 1</IonLabel>
+                <CardName card="GUARD"></CardName>
             </IonTabButton>
         </IonTabBar>
     </IonTabs>

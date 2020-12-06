@@ -167,10 +167,10 @@ const GamePage: React.FC = () => {
 
     var playerDetails : PlayerDetails[] = [
         { characterId: 1, discarded: ["GUARD"], name: "Dave", state: "ALIVE", tokens: [] },
-        { characterId: 2, discarded: ["BARON", "PRIEST"], name: "Harry", state: "DEAD", tokens: [] },
+        { characterId: 2, discarded: ["BARON", "PRIEST"], name: "Harry", state: "DEAD", tokens: [{gem: 5}] },
         { characterId: 3, discarded: ["PRINCE", "HANDMAID"], name: "Fred", state: "SAFE", tokens: [] },
     ];
-    var discardedCardTotals : number[] = [0,0,0,0,0,0,0,0];
+    var discardedCardTotals : number[] = [5,2,2,2,0,0,0,0];
     var gameState = "LOGIN";
     var playerId = 0;
 

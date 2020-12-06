@@ -1,4 +1,3 @@
-import {IonCard} from '@ionic/react';
 import React from 'react';
 import { cardDetailsMap } from './cards';
 import { charactersMap } from './charactermap';
@@ -8,6 +7,7 @@ export type PlayedCardTotals = number[];
 
 export interface Token
 {
+    gem: number
 }
 
 export interface PlayerDetails {
