@@ -167,6 +167,11 @@ App.prototype.gameNext = function ()
     this.gameCarousel.next();
 };
 
+App.prototype.gotoCard = function (handId)
+{
+    this.gameCarousel.setActiveIndex(1 + handId);
+};
+
 App.prototype.setupHelp = function ()
 {
     var data = {};

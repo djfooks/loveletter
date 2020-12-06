@@ -142,6 +142,8 @@ function GameCardItem(props)
                 <CardImgAndDetails card={props.card} />
             </Ons.Card>
             {playState}
+            <div className="swipeHack">
+            </div>
         </Ons.CarouselItem>
     );
 }
@@ -307,6 +309,8 @@ function GameCarouselItems(props)
                     <PlayersList playerDetails={props.playerDetails} tokenList={props.tokenList} />
                 </Ons.Card>
                 <StartGameCard gameState={props.gameState} playerId={props.playerId} />
+                <div className="swipeHack">
+                </div>
             </Ons.CarouselItem>
             {
                 props.cards.length == 0 ? null :
@@ -328,9 +332,9 @@ function GameCarouselItems(props)
 
 function GameTopBar(props)
 {
-    function handleClick()
+    function handleClick(handId)
     {
-        app.gameNext();
+        app.gotoCard(handId);
     }
 
     var cardsList = null;
@@ -339,10 +343,10 @@ function GameTopBar(props)
         var card1 = null;
         if (props.cards.length > 1)
         {
-            card1 = <span>, <CardName card={props.cards[1]} /></span>;
+            card1 = <span onClick={(e) => handleClick(1, e)}>, <CardName card={props.cards[1]} onClick={(e) => handleClick(1, e)} /></span>;
         }
-        return (<span onClick={handleClick}>
-            <CardName card={props.cards[0]} />
+        return (<span>
+            <span onClick={(e) => handleClick(0, e)}><CardName card={props.cards[0]}/></span>
             {card1}
         </span>);
     }

@@ -176,3 +176,8 @@
 .cardNameKING      { color: #96b57f; }
 .cardNameCOUNTESS  { color: #8390aa; }
 .cardNamePRINCESS  { color: #b9af9a; }
+
+.swipeHack
+{
+    padding-bottom: 300px;
+}
