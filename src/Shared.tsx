@@ -6,10 +6,16 @@ import { charactersMap } from './charactermap';
 export type PlayerState = "ALIVE" | "DEAD" | "SAFE";
 export type PlayedCardTotals = number[];
 
+export interface Token
+{
+}
+
 export interface PlayerDetails {
     name: string;
     characterId: number;
     state: PlayerState;
+    tokens: Token[];
+    discarded: string[];
 }
 
 export function InteractionCard(props : {children: any})

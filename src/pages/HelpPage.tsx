@@ -50,7 +50,7 @@ function HelpCardItems()
     )}</>)
 }
 
-const GamePage: React.FC = () => {
+const HelpPage: React.FC = () => {
     var items = [];
     var i;
     for (i = 0; i < 300; i += 1)
@@ -86,4 +86,4 @@ const GamePage: React.FC = () => {
     );
 };
 
-export default GamePage;
+export default HelpPage;

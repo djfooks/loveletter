@@ -22,7 +22,7 @@ interface AppPage {
 const appPages: AppPage[] = [
   {
     title: 'Game',
-    url: '/page/Game',
+    url: '/tabs',
     icon: caretForwardCircleOutline
   },
   {
@@ -50,8 +50,8 @@ const Menu: React.FC = () => {
           </IonItem>
           {appPages.map((appPage, index) => {
             return (
-              <IonMenuToggle key={index} autoHide={false}>
-                <IonItem className={location.pathname === appPage.url ? 'selected' : ''} routerLink={appPage.url} routerDirection="none" lines="none" detail={false}>
+              <IonMenuToggle key={index} autoHide={true}>
+                <IonItem className={location.pathname.startsWith(appPage.url) ? 'selected' : ''} routerLink={appPage.url} routerDirection="none" lines="none" detail={false}>
                   <IonIcon slot="start" icon={appPage.icon} />
                   <IonLabel>{appPage.title}</IonLabel>
                 </IonItem>
