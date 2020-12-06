@@ -80,7 +80,7 @@ function init()
 }
 init();
 
-function getCardName(card : number)
+export function getCardName(card : number)
 {
     return cardDetailsMapExport[cardTypes[card]].name + " (" + cardDetailsMapExport[cardTypes[card]].value + ")";
 }

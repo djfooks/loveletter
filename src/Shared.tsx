@@ -32,7 +32,7 @@ export function CardImgAndDetails(props : {card: string})
 {
     return (
         <React.Fragment>
-            <img className="cardImg" src={"img/" + props.card + ".png"}/>
+            <img className="cardImg" src={"img/" + props.card + ".png"} alt={props.card}></img>
             <div className="cardText">{cardDetailsMap[props.card].action}</div>
         </React.Fragment>
     );
@@ -63,18 +63,18 @@ export function PlayerCharacter(props : {playerDetails: PlayerDetails})
     {
         imgPath = "img/dead-characters/" + charactersMap[props.playerDetails.characterId];
     }
-    return <img className="characterImg" src={imgPath}/>;
+    return <img className="characterImg" src={imgPath} alt={imgPath}/>;
 }
 
 export function PlayerState(props : { state : PlayerState })
 {
     if (props.state === "SAFE")
     {
-        return <img className="statusImg" src="img/shield.svg"/>;
+        return <img className="statusImg" src="img/shield.svg" alt="SAFE"/>;
     }
     else if (props.state === "DEAD")
     {
-        return <img className="statusImg" src="img/danger.svg"/>;
+        return <img className="statusImg" src="img/danger.svg" alt="DEAD"/>;
     }
     return null;
 }
