@@ -8,13 +8,15 @@ import {
     IonPage,
     IonTitle,
     IonToolbar} from '@ionic/react';
-import React from 'react';
-import { cardTypes } from '../cards';
-import { CardName, DotDotDot, LVCard, InteractionCard, PlayerCharacter, PlayerDetails, PlayerState, Token } from '../Shared';
+import React, { useEffect, useState } from 'react';
+import { CardType, cardTypes } from '../cards';
+import { CardName, DotDotDot, LVCard, InteractionCard, PlayerCharacter, PlayerDetails, PlayerState, Token, GameState } from '../Shared';
 import './Page.css';
 import { chevronDownOutline, chevronUpOutline } from 'ionicons/icons';
+import { clientApp } from '../ClientApp';
+import { LVListenerList } from '../UIListeners';
 
-function DiscardList(props : {cards: string[]})
+function DiscardList(props : {cards: CardType[]})
 {
     return (<>{props.cards.map((card, index) =>
             <div key={index}>
@@ -70,7 +72,7 @@ export class PlayerLine extends React.Component<PlayerLineProps, PlayerLineState
                     <span className="playerTopLineLeft">
                         <PlayerCharacter playerDetails={this.props.playerDetails} />
                         <span className="playerName">{this.props.playerDetails.name}</span>
-                        <PlayerState state={this.props.playerDetails.state} />
+                        <PlayerState status={this.props.playerDetails.state} />
                     </span>
                     <span className="playerTopLineRight">
                         <Tokens tokens={this.props.playerDetails.tokens} />
@@ -105,7 +107,7 @@ function PlayersList(props : {playerDetails : PlayerDetails[]})
     )}</>);
 }
 
-function StartGameCard(props : {gameState: string, playerId: number})
+function StartGameCard(props : {gameState: GameState, playerId: number})
 {
     function handleStart()
     {
@@ -165,14 +167,19 @@ function TopLine(props : {discardedCardTotals : number[]})
 
 const GamePage: React.FC = () => {
 
-    var playerDetails : PlayerDetails[] = [
-        { characterId: 1, discarded: ["GUARD"], name: "Dave", state: "ALIVE", tokens: [] },
-        { characterId: 2, discarded: ["BARON", "PRIEST"], name: "Harry", state: "DEAD", tokens: [{gem: 5}] },
-        { characterId: 3, discarded: ["PRINCE", "HANDMAID"], name: "Fred", state: "SAFE", tokens: [] },
-    ];
-    var discardedCardTotals : number[] = [5,2,2,2,0,0,0,0];
-    var gameState = "LOGIN";
-    var playerId = 0;
+    const [playerDetails, setPlayerDetails] = useState<PlayerDetails[]>(clientApp.getUiProperty("playerDetails"));
+    const [discardedCardTotals, setDiscardedCardTotals] = useState<number[]>(clientApp.getUiProperty("discardedCardTotals"));
+    const [gameState, setGameState] = useState<GameState>(clientApp.getUiProperty("gameState"));
+    const [playerId, setPlayerId] = useState<number>(clientApp.getUiProperty("playerId"));
+    
+    useEffect(() => {
+        var listeners = new LVListenerList();
+        listeners.onPropertyChange("playerDetails", function(value : PlayerDetails[]) { setPlayerDetails(value); });
+        listeners.onPropertyChange("discardedCardTotals", function(value : number[]) { setDiscardedCardTotals(value); });
+        listeners.onPropertyChange("gameState", function(value : GameState) { setGameState(value); });
+        listeners.onPropertyChange("playerId", function(value : number) { setPlayerId(value); });
+        return clientApp.effectListeners(listeners);
+    });
 
     return (
     <IonPage id="game">

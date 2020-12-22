@@ -1,8 +1,9 @@
 import React from 'react';
-import { cardDetailsMap } from './cards';
+import { getCardDetails, CardType } from './cards';
 import { charactersMap } from './charactermap';
 
-export type PlayerState = "ALIVE" | "DEAD" | "SAFE";
+export type GameState = "LOGIN" | "PLAYING";
+export type PlayerStatus = "ALIVE" | "DEAD" | "SAFE";
 export type PlayedCardTotals = number[];
 
 export interface Token
@@ -13,9 +14,9 @@ export interface Token
 export interface PlayerDetails {
     name: string;
     characterId: number;
-    state: PlayerState;
+    state: PlayerStatus;
     tokens: Token[];
-    discarded: string[];
+    discarded: CardType[];
 }
 
 export function LVCard(props : {children: any})
@@ -38,17 +39,17 @@ export function InteractionCard(props : {children: any})
     );
 }
 
-export function CardName(props : {card: string})
+export function CardName(props : {card: CardType})
 {
-    return <span className={"cardName cardName" + props.card}>{cardDetailsMap[props.card].name} ({cardDetailsMap[props.card].value})</span>;
+    return <span className={"cardName cardName" + props.card}>{getCardDetails(props.card).name} ({getCardDetails(props.card).value})</span>;
 }
 
-export function CardImgAndDetails(props : {card: string})
+export function CardImgAndDetails(props : {card: CardType})
 {
     return (
         <React.Fragment>
             <img className="cardImg" src={"img/" + props.card + ".png"} alt={props.card}></img>
-            <div className="cardText">{cardDetailsMap[props.card].action}</div>
+            <div className="cardText">{getCardDetails(props.card).action}</div>
         </React.Fragment>
     );
 }
@@ -81,13 +82,13 @@ export function PlayerCharacter(props : {playerDetails: PlayerDetails})
     return <img className="characterImg" src={imgPath} alt={imgPath}/>;
 }
 
-export function PlayerState(props : { state : PlayerState })
+export function PlayerState(props : { status : PlayerStatus })
 {
-    if (props.state === "SAFE")
+    if (props.status === "SAFE")
     {
         return <img className="statusImg" src="img/shield.svg" alt="SAFE"/>;
     }
-    else if (props.state === "DEAD")
+    else if (props.status === "DEAD")
     {
         return <img className="statusImg" src="img/danger.svg" alt="DEAD"/>;
     }

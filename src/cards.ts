@@ -1,5 +1,6 @@
+export type CardType = "GUARD" | "PRIEST" | "BARON" | "HANDMAID" | "PRINCE" | "KING" | "COUNTESS" | "PRINCESS";
 
-export const orderedCards : string[] = ["GUARD", "PRIEST", "BARON", "HANDMAID", "PRINCE", "KING", "COUNTESS", "PRINCESS"];
+export const orderedCards : CardType[] = ["GUARD", "PRIEST", "BARON", "HANDMAID", "PRINCE", "KING", "COUNTESS", "PRINCESS"];
 
 class CardDetailsMapValue {
     value: number;
@@ -7,7 +8,7 @@ class CardDetailsMapValue {
     numInDeck: number;
     shortAction: string;
     action: string;
-    cardType: string;
+    cardType: CardType;
     
     constructor(map : {
         value: number;
@@ -80,10 +81,13 @@ function init()
 }
 init();
 
-export function getCardName(card : number)
+export function getCardName(card : number) : string
 {
     return cardDetailsMapExport[cardTypes[card]].name + " (" + cardDetailsMapExport[cardTypes[card]].value + ")";
 }
 
 export const cardTypes = cardTypesExport;
-export const cardDetailsMap = cardDetailsMapExport;
+export function getCardDetails(cardTypeStr : CardType) : CardDetailsMapValue
+{
+    return cardDetailsMapExport[cardTypeStr as string];
+}

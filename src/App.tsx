@@ -1,6 +1,8 @@
 import Menu from './components/Menu';
 import GameTabPage from './pages/GameTab';
 import HelpPage from './pages/HelpPage';
+import { InputExamples } from './pages/Page';
+import { LoginPage } from './pages/LoginPage';
 import React from 'react';
 import { IonApp, IonRouterOutlet, IonSplitPane } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
@@ -34,8 +36,11 @@ const App: React.FC = () => {
           <Menu />
           <IonRouterOutlet id="main">
             <Route path="/tabs" render={() => <GameTabPage />} />
+            <Route path="/page/Login" component={LoginPage} exact />
+            <Route path="/page/PickCharacter" component={PickCharacterPage} exact />
             <Route path="/page/Help" component={HelpPage} exact />
-            <Redirect from="/" to="/tabs" exact />
+            <Route path="/page/Test" component={InputExamples} exact />
+            <Redirect from="/" to="/page/Login" exact />
           </IonRouterOutlet>
         </IonSplitPane>
       </IonReactRouter>

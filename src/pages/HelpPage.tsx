@@ -9,7 +9,7 @@ import {
     IonSlides,
     IonSlide} from '@ionic/react';
 import React from 'react';
-import { cardDetailsMap, orderedCards } from '../cards';
+import { getCardDetails, orderedCards } from '../cards';
 import './Page.css';
 import { CardImgAndDetails, CardName, PlayedCardTotals, LVCard } from '../Shared'
 
@@ -19,7 +19,7 @@ function QuickHelpList(props : {playedCardTotals: PlayedCardTotals})
         orderedCards.map((cardType, index) =>
         <div key={cardType}>
             <span className="alignLeft"><CardName card={cardType} /></span>
-            <span className="alignRight">{props.playedCardTotals[index]} / {cardDetailsMap[cardType].numInDeck}</span>
+            <span className="alignRight">{props.playedCardTotals[index]} / {getCardDetails(cardType).numInDeck}</span>
             <br />
             <br />
         </div>

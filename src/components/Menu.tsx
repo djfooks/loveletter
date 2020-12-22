@@ -32,7 +32,7 @@ const appPages: AppPage[] = [
   },
   {
     title: 'Leave Room',
-    url: '/page/LeaveRoom',
+    url: '/page/Login',
     icon: exitOutline
   }
 ];
