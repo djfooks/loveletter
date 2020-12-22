@@ -9,7 +9,7 @@ import {
     IonTitle,
     IonToolbar} from '@ionic/react';
 import React, { useEffect, useState } from 'react';
-import { CardType, cardTypes } from '../cards';
+import { CardType, getCardType, totalNumberOfCards } from '../cards';
 import { CardName, DotDotDot, LVCard, InteractionCard, PlayerCharacter, PlayerDetails, PlayerState, Token, GameState } from '../Shared';
 import './Page.css';
 import { chevronDownOutline, chevronUpOutline } from 'ionicons/icons';
@@ -148,7 +148,7 @@ function TopLine(props : {discardedCardTotals : number[]})
     {
         totalDiscards += props.discardedCardTotals[i];
     }
-    var cardsLeft = cardTypes.length - 1 - totalDiscards;
+    var cardsLeft = totalNumberOfCards - 1 - totalDiscards;
     if (cardsLeft < 5)
     {
         return (

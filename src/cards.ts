@@ -86,7 +86,13 @@ export function getCardName(card : number) : string
     return cardDetailsMapExport[cardTypes[card]].name + " (" + cardDetailsMapExport[cardTypes[card]].value + ")";
 }
 
-export const cardTypes = cardTypesExport;
+export function getCardType(card : number) : CardType
+{
+    return cardTypesExport[card] as CardType;
+}
+
+export const totalNumberOfCards = cardTypesExport.length;
+
 export function getCardDetails(cardTypeStr : CardType) : CardDetailsMapValue
 {
     return cardDetailsMapExport[cardTypeStr as string];

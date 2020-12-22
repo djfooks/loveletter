@@ -14,6 +14,7 @@ export const LoginPage: React.FC = () => {
     const [joinRoomEnable, setJoinRoomEnable] = useState<boolean>(true);
     const [showToast, setShowToast] = useState<boolean>(false);
     const [joinedRoom, setJoinedRoom] = useState<boolean>(false);
+    const [gotoLobby, setGotoLobby] = useState<boolean>(false);
 
     useEffect(() => {
         var listeners = new LVListenerList();
@@ -31,13 +32,13 @@ export const LoginPage: React.FC = () => {
             setCreateRoomEnable(true);
             setJoinedRoom(false);
         });
-        listeners.onEvent("joinRoom", () => { setJoinedRoom(true); });
+        listeners.onEvent("joinRoom", (shouldGotoLobby : boolean) => { setJoinedRoom(true); setGotoLobby(shouldGotoLobby) });
         return clientApp.effectListeners(listeners);
     });
 
     if (joinedRoom)
     {
-        return <Redirect to="/tabs" />
+        return <Redirect to={gotoLobby ? "/tabs" : "/page/PickCharacter" } />
     }
 
     function joinRoom()

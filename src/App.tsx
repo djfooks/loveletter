@@ -2,6 +2,7 @@ import Menu from './components/Menu';
 import GameTabPage from './pages/GameTab';
 import HelpPage from './pages/HelpPage';
 import { InputExamples } from './pages/Page';
+import PickCharacterPage from './pages/PickCharacterPage';
 import { LoginPage } from './pages/LoginPage';
 import React from 'react';
 import { IonApp, IonRouterOutlet, IonSplitPane } from '@ionic/react';

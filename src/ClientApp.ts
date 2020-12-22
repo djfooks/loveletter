@@ -1,11 +1,11 @@
-import { CardType, orderedCards } from "./cards";
+import { CardType, getCardType, orderedCards } from "./cards";
 import { GameState, PlayerDetails } from "./Shared";
 import { EventHandler, LVListenerList, LVUIProperty } from "./UIListeners";
 
 class ClientApp
 {
     pickedCharacterId : number;
-    selectedCharacterId : number;
+    alreadyPickedIds : number[];
     playerId : number;
     numPlayers : number;
     key: number | null;
@@ -28,10 +28,10 @@ class ClientApp
         this.uiEventHandler = new EventHandler();
 
         this.pickedCharacterId = -1;
-        this.selectedCharacterId = -1;
+        this.alreadyPickedIds = [];
         this.playerId = -1;
         this.numPlayers = 0;
-        this.hand = ["GUARD", "PRINCE"];
+        this.hand = [];
         this.turnId = -1;
         this.playerDetails = [];
         this.gameState = "LOGIN";
@@ -51,34 +51,6 @@ class ClientApp
         this.websocket = null;
 
         this.prevUIData = {};
-        
-        var that = this;
-        that.playerDetails = [{
-            characterId: 3,
-            discarded: [],
-            name: "Dave",
-            state: "ALIVE",
-            tokens: []
-        }];
-
-        setTimeout(function () {
-            that.playerDetails = [{
-                characterId: 5,
-                discarded: [],
-                name: "Dave",
-                state: "ALIVE",
-                tokens: [{gem: 5}]
-            },
-            {
-                characterId: 7,
-                discarded: [],
-                name: "Jojo",
-                state: "ALIVE",
-                tokens: [{gem: 5}, {gem: 5}, {gem: 5}]
-            }];
-
-            that.updateUI();
-        }, 3000);
     }
 
     effectListeners(listeners : LVListenerList)
@@ -109,6 +81,8 @@ class ClientApp
         addProperty("gameState", () => this.gameState);
         addProperty("username", () => this.username);
         addProperty("roomcode", () => this.roomcode);
+        addProperty("pickedCharacterId", () => this.pickedCharacterId);
+        addProperty("alreadyPickedIds", () => this.alreadyPickedIds);
         return uiValues;
     }
 
@@ -168,11 +142,7 @@ class ClientApp
 
     onopen()
     {
-        this.uiEventHandler.triggerEvent("joinRoom");
-    }
-
-    onmessage(message : any)
-    {
+        this.uiEventHandler.triggerEvent("joinRoom", false);
     }
 
     createRoom()
@@ -247,7 +217,7 @@ class ClientApp
         for (i = 0; i < this.playerDetails.length; i += 1)
         {
             playerDetails = this.playerDetails[i];
-            if (playerDetails.characterId !== undefined && playerDetails.characterId !== this.pickedCharacterId)
+            if (playerDetails.characterId !== undefined)
                 alreadyPickedIds.push(playerDetails.characterId);
         }
         return alreadyPickedIds;
@@ -276,14 +246,9 @@ class ClientApp
         document.getElementById("pickCharacterRoomCodeSpan").innerHTML = this.getRoomCode();
     }*/
 
-    selectCharacter(id : number)
+    pickCharacter(selectedCharacterId : number)
     {
-        this.selectedCharacterId = id;
-    }
-
-    pickCharacter()
-    {
-        this.send({ "cmd": "PICK_CHARACTER", "characterId": this.selectedCharacterId });
+        this.send({ "cmd": "PICK_CHARACTER", "characterId": selectedCharacterId });
     }
 
     getCardDiscardedCountArray()
@@ -358,55 +323,48 @@ class ClientApp
         this.send({ "cmd": "FORCE_ROUND_END" });
     }
 
-    onmessage(strData)
+    */
+    onmessage(strData : string)
     {
         var data = JSON.parse(strData);
         switch(data.cmd) {
             case "CHARACTER_ID_IN_USE":
             {
-                this.updatePickCharacterButton();
+                // nothing to do
             }
             break;
             case "CHARACTER_PICKED":
             {
-                this.ui.playerDetails[data.playerId].characterId = data.characterId;
+                this.playerDetails[data.playerId].characterId = data.characterId;
                 if (data.playerId == this.playerId)
                 {
                     this.pickedCharacterId = data.characterId;
-                    this.loadPage("game.html");
-                    this.setupGame();
-                }
-                else
-                {
-                    this.setupPickCharacter();
-                    this.setupGame();
                 }
             }
             break;
             case "START_CARD":
             {
                 this.playerId = data.playerId;
-                this.addCard(data.pickup);
+                this.addCard(getCardType(data.pickup));
             }
             break;
             case "PICKUP":
             case "YOUR_TURN":
             {
                 // clear your SAFE state
-                this.playerStates[this.playerId]["state"] = "ALIVE";
-                this.addCard(data.pickup);
+                this.playerDetails[this.playerId]["state"] = "ALIVE";
+                this.addCard(getCardType(data.pickup));
             }
             break;
             case "JOINED":
             {
-                this.ui.playerDetails[data.index] = {
+                this.playerDetails[data.index] = {
                     name: data.name,
                     characterId: data.characterId,
                     tokens: [],
                     state: "ALIVE",
                     discarded: []
                 };
-                // TODO update gui
             }
             break;
             case "START_GAME":
@@ -448,8 +406,10 @@ class ClientApp
             }
             break;
         }
-    }
 
+        this.updateUI();
+    }
+    /*
     updateUIState(data)
     {
         this.ui.playerDetails = [];
@@ -601,7 +561,8 @@ class ClientApp
         // TODO update gui
     }
 
-    addCard(card)
+    */
+    addCard(card : CardType)
     {
         var i;
         for (i = 0; i < this.hand.length; i += 1)
@@ -612,9 +573,9 @@ class ClientApp
             }
         }
         this.hand.push(card);
-        this.setupGame();
     }
 
+    /*
     roundComplete()
     {
     }

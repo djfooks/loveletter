@@ -1,17 +1,81 @@
 import {
+    IonButton,
     IonButtons, 
     IonContent, 
     IonHeader,
     IonMenuButton,
     IonPage,
     IonTitle,
-    IonToolbar,
-    IonSlides,
-    IonSlide} from '@ionic/react';
-import React from 'react';
+    IonToolbar} from '@ionic/react';
+import React, { useEffect, useState } from 'react';
+import { Redirect } from 'react-router';
+import { charactersMap } from '../charactermap';
+import { clientApp } from '../ClientApp';
+import { LVListenerList } from '../UIListeners';
 import './Page.css';
 
+function PickCharacterElement(props : {id: number, img : string, isAlreadyPicked: boolean, isSelected: boolean, isPicked: boolean, pickedCharacterCb: (value : number) => void})
+{
+    function handleClick()
+    {
+        props.pickedCharacterCb(props.id);
+    }
+
+    return (
+        <div className={props.isAlreadyPicked ? "characterGridCellAlreadyPicked" :
+                        props.isSelected ? "characterGridCellSelected" :
+                        props.isPicked ? "characterGridCellPicked" : "characterGridCell"} onClick={handleClick}>
+            <img src={"img/characters/" + props.img} className="characterImg" onClick={handleClick} alt="lol"/>
+        </div>
+    );
+}
+
+function PickCharacterElements(props : {selectedCharacterId: number, alreadyPickedIds: number[], pickedCharacterId: number, pickedCharacterCb: (value : number) => void})
+{
+    return <>{
+        charactersMap.map((characterImg, index) =>
+            <PickCharacterElement
+                key={index}
+                id={index}
+                img={characterImg}
+                isSelected={props.selectedCharacterId === index}
+                isAlreadyPicked={props.alreadyPickedIds.indexOf(index) !== -1}
+                isPicked={props.pickedCharacterId === index}
+                pickedCharacterCb={props.pickedCharacterCb}
+                />
+        )
+    }</>
+}
+
 const PickCharacterPage: React.FC = () => {
+    const [selectedCharacterId, setSelectedCharacterId] = useState<number>(clientApp.getUiProperty("pickedCharacterId"));
+    const [alreadyPickedIds, setAlreadyPickedIds] = useState<number[]>(clientApp.getUiProperty("alreadyPickedIds"));
+    const [pickedCharacterId, setPickedCharacterId] = useState<number>(clientApp.getUiProperty("pickedCharacterId"));
+    const [gotoLobby, setGotoLobby] = useState<boolean>(false);
+
+    useEffect(() => {
+        var listeners = new LVListenerList();
+        listeners.onPropertyChange("pickedCharacterId", function(value) { setPickedCharacterId(value); });
+        listeners.onPropertyChange("alreadyPickedIds", function(value) { setAlreadyPickedIds(value); });
+        listeners.onEvent("pickedCharacter", function () { setGotoLobby(true); })
+        return clientApp.effectListeners(listeners);
+    });
+
+    if (gotoLobby)
+    {
+        return <Redirect to={"/tabs" } />
+    }
+
+    function handlePickClick()
+    {
+        clientApp.pickCharacter(selectedCharacterId);
+    }
+
+    function handleCharacterClick(characterId : number)
+    {
+        setSelectedCharacterId(characterId);
+    }
+
     return (
     <IonPage>
         <IonHeader>
@@ -19,14 +83,27 @@ const PickCharacterPage: React.FC = () => {
                 <IonButtons slot="start">
                     <IonMenuButton />
                 </IonButtons>
-                <IonTitle>Pick Character</IonTitle>
+                <IonTitle>
+                    <IonButton
+                        disabled={selectedCharacterId === -1 || (pickedCharacterId !== selectedCharacterId && alreadyPickedIds.indexOf(selectedCharacterId) !== -1)}
+                        onClick={handlePickClick}
+                        >
+                        Pick Character
+                    </IonButton>
+                </IonTitle>
             </IonToolbar>
         </IonHeader>
 
         <IonContent fullscreen>
+            <div>
+                <div className="grid">
+                    <PickCharacterElements selectedCharacterId={selectedCharacterId} alreadyPickedIds={alreadyPickedIds} pickedCharacterId={pickedCharacterId} pickedCharacterCb={handleCharacterClick}/>
+                </div>
+                <div>Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+            </div>
         </IonContent>
     </IonPage>
     );
 };
 
-export default HelpPage;
+export default PickCharacterPage;

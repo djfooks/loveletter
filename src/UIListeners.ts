@@ -8,12 +8,15 @@ export type LVUIProperty =
     | "playerId"
     | "gameState"
     | "username"
-    | "roomcode";
+    | "roomcode"
+    | "pickedCharacterId"
+    | "alreadyPickedIds";
 
 export type LVUIEvent =
     "leaveRoom"
     | "connectionError"
-    | "joinRoom";
+    | "joinRoom"
+    | "pickedCharacter";
 
 type LVListenerType = "PROPERTY" | "EVENT";
 export class LVListener
@@ -78,7 +81,7 @@ export class EventHandler
             }
         }
         throw Error("No listener with id " + listener.id + " found...");
-        return false;
+        //return false;
     }
     
     triggerEvent(name : LVUIEvent, value? : any)
