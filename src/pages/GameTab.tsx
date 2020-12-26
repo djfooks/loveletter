@@ -29,10 +29,10 @@ const GameTabPage: React.FC = () => {
     return (
     <IonTabs>
         <IonRouterOutlet>
-            <Redirect exact path="/tabs" to="/tabs/card" />
+            <Redirect exact path="/tabs" to="/tabs/game" />
             <Route path="/tabs/game" render={() => <GamePage />} exact />
-            <Route path="/tabs/card" component={CardPage} />
-            <Route path="/tabs/card/:handId" component={CardPage} />
+            <Route path="/tabs/card/0" render={() => <CardPage handId={0} />} />
+            <Route path="/tabs/card/1" render={() => <CardPage handId={1} />} />
         </IonRouterOutlet>
         <IonTabBar slot="bottom">
             <IonTabButton tab="game" href="/tabs/game">

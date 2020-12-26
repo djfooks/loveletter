@@ -80,6 +80,7 @@ class ClientApp
         addProperty("hand", () => this.hand);
         addProperty("discardedCardTotals", () => this.getCardDiscardedCountArray());
         addProperty("playerId", () => this.playerId);
+        addProperty("turnId", () => this.turnId);
         addProperty("gameState", () => this.gameState);
         addProperty("loggedIn", () => this.loggedIn);
         addProperty("username", () => this.username);
@@ -152,7 +153,6 @@ class ClientApp
         this.send({ "cmd": "GET" });
         this.loggedIn = true;
         this.updateUI();
-        this.uiEventHandler.triggerEvent("redirect", "/page/PickCharacter");
     }
 
     createRoom()
@@ -282,12 +282,12 @@ class ClientApp
         this.pickedPlayer = -1;
         this.interaction = {};
     }
-
+    */
     start()
     {
         this.send({ "cmd": "START" });
     }
-
+    /*
     restart()
     {
         this.send({ "cmd": "RESTART" });
@@ -311,7 +311,7 @@ class ClientApp
                 if (data.playerId === this.playerId)
                 {
                     this.pickedCharacterId = data.characterId;
-                    this.uiEventHandler.triggerEvent("pickedCharacter");
+                    this.uiEventHandler.triggerEvent("redirect", "/tabs");
                 }
             break;
             case "START_CARD":
@@ -392,35 +392,33 @@ class ClientApp
                 }
             }
 
+            if (this.playerId === i)
+            {
+                this.pickedCharacterId = player.characterId;
+            }
+
             this.playerDetails.push(playerDetails);
         }
     }
+
+    playCard(handCardId : number, target? : number, guess? : CardType)
+    {
+        var cmd;
+        if (handCardId === 0)
+            cmd = "PLAY_HAND";
+        else if (handCardId === 1)
+            cmd = "PLAY_PICKUP";
+
+        var msg : any = { "room": this.roomcode, "cmd": cmd };
+        if (target !== undefined)
+            msg["target"] = target;
+        if (guess !== undefined)
+            msg["guess"] = guess;
+        this.send(msg);
+
+        this.hand.splice(handCardId, 1);
+    }
     /*
-
-    cardPlayStateReset()
-    {
-        this.cardPlayState = {state: "WAIT", "handCardId": -1};
-    }
-
-    pickCard(handCardId)
-    {
-        this.cardPlayState.handCardId = handCardId;
-        var cardType = cardTypes[this.hand[handCardId]];
-        if (cardType === "GUARD" ||
-            cardType === "PRIEST" ||
-            cardType === "BARON" ||
-            cardType === "PRINCE" ||
-            cardType === "KING")
-        {
-            this.cardPlayState.state = "PLAYED";
-            this.setupGame();
-        }
-        else
-        {
-            this.sendPlayCard(handCardId);
-        }
-    }
-
     pickTarget(targetId)
     {
         var cardType = cardTypes[this.hand[this.cardPlayState.handCardId]];
@@ -438,7 +436,6 @@ class ClientApp
 
     pickGuess(guess)
     {
-        this.sendPlayCard(this.cardPlayState.handCardId, this.cardPlayState.target, guess);
     }
 
     playBack()
@@ -462,19 +459,34 @@ class ClientApp
             this.playerId = data.playerId;
         this.numPlayers = data.players.length;
 
+        var prevGameState = this.gameState;
         this.gameState = data.gamestate;
+        
+        if (prevGameState !== this.gameState)
+        {
+            this.uiEventHandler.triggerEvent("redirect", (data.gamestate === "LOGIN") ? "/page/PickCharacter" : "/tabs");
+        }
 
         if (data.gamestate === "LOGIN")
         {
             this.updatePlayerDetails(data);
-            this.pickedCharacterId = data.players[this.playerId].characterId;
         }
         else if (data.gamestate === "PLAYING")
         {
-            this.hand = data.hand || [];
+            this.covertHandNumbersToCards(data.hand || []);
             this.turnId = data.turn;
             this.interaction = data.interaction;
             this.updatePlayerDetails(data);
+        }
+    }
+
+    covertHandNumbersToCards(data : number[])
+    {
+        this.hand = [];
+        var i;
+        for (i = 0; i < data.length; i += 1)
+        {
+            this.hand.push(getCardType(data[i]));
         }
     }
 
@@ -553,21 +565,6 @@ class ClientApp
 
     sendPlayCard(cardId, target, guess)
     {
-        var cmd;
-        if (cardId === 0)
-            cmd = "PLAY_HAND";
-        else if (cardId === 1)
-            cmd = "PLAY_PICKUP";
-
-        var msg = { "room": this.getRoomCode(), "cmd": cmd };
-        if (target !== undefined)
-            msg["target"] = target;
-        if (guess !== undefined)
-            msg["guess"] = guess;
-        this.send(msg);
-        this.resetTurnState();
-
-        this.hand.splice(cardId, 1);
     }
 
     getOtherCard()

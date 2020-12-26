@@ -6,6 +6,7 @@ export type LVUIProperty =
     | "hand"
     | "discardedCardTotals"
     | "playerId"
+    | "turnId"
     | "gameState"
     | "loggedIn"
     | "username"
@@ -17,7 +18,6 @@ export type LVUIEvent =
     "leaveRoom"
     | "connectionError"
     | "joinRoom"
-    | "pickedCharacter"
     | "pickedCharacterInUse"
     | "redirect";
 

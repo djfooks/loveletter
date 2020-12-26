@@ -8,7 +8,6 @@ import {
     IonTitle,
     IonToolbar} from '@ionic/react';
 import React, { useEffect, useState } from 'react';
-import { Redirect } from 'react-router';
 import { charactersMap } from '../charactermap';
 import { clientApp } from '../ClientApp';
 import { LVListenerList } from '../UIListeners';
@@ -51,22 +50,15 @@ const PickCharacterPage: React.FC = () => {
     const [selectedCharacterId, setSelectedCharacterId] = useState<number>(clientApp.getUiProperty("pickedCharacterId"));
     const [alreadyPickedIds, setAlreadyPickedIds] = useState<number[]>(clientApp.getUiProperty("alreadyPickedIds"));
     const [pickedCharacterId, setPickedCharacterId] = useState<number>(clientApp.getUiProperty("pickedCharacterId"));
-    const [gotoLobby, setGotoLobby] = useState<boolean>(false);
     const [pickDisabled, setPickDisabled] = useState<boolean>(false);
 
     useEffect(() => {
         var listeners = new LVListenerList();
-        listeners.onPropertyChange("pickedCharacterId", function(value) { setPickedCharacterId(value); });
+        listeners.onPropertyChange("pickedCharacterId", function(value) { setPickedCharacterId(value); setSelectedCharacterId(value); });
         listeners.onPropertyChange("alreadyPickedIds", function(value) { setAlreadyPickedIds(value); });
-        listeners.onEvent("pickedCharacter", function () { setGotoLobby(true); });
         listeners.onEvent("pickedCharacterInUse", function () { setPickDisabled(false); });
         return clientApp.effectListeners(listeners);
     });
-
-    if (gotoLobby)
-    {
-        return <Redirect to={"/tabs" } />
-    }
 
     function handlePickClick()
     {

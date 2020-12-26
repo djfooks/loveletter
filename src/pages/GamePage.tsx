@@ -61,9 +61,12 @@ export class PlayerLine extends React.Component<PlayerLineProps, PlayerLineState
         var that = this;
         function handleClick()
         {
-            that.setState((state, props) => ({
-                dropdownOpen: !state.dropdownOpen
-              }));
+            if (that.props.hasDropdown)
+            {
+                that.setState((state, props) => ({
+                    dropdownOpen: !state.dropdownOpen
+                }));
+            }
         }
 
         return (
@@ -111,7 +114,7 @@ function StartGameCard(props : {gameState: GameState, playerId: number})
 {
     function handleStart()
     {
-        //app.start();
+        clientApp.start();
     }
 
     if (props.gameState !== "LOGIN")
