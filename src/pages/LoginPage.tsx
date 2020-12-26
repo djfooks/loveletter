@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonInput, IonItem, IonList, IonButton, IonToast } from '@ionic/react';
 import { clientApp } from '../ClientApp';
 import { LVListenerList } from '../UIListeners';
-import { Redirect } from 'react-router';
-
 
 export const LoginPage: React.FC = () => {
 
@@ -13,8 +11,6 @@ export const LoginPage: React.FC = () => {
     const [createRoomEnable, setCreateRoomEnable] = useState<boolean>(true);
     const [joinRoomEnable, setJoinRoomEnable] = useState<boolean>(true);
     const [showToast, setShowToast] = useState<boolean>(false);
-    const [joinedRoom, setJoinedRoom] = useState<boolean>(false);
-    const [gotoLobby, setGotoLobby] = useState<boolean>(false);
 
     useEffect(() => {
         var listeners = new LVListenerList();
@@ -24,22 +20,14 @@ export const LoginPage: React.FC = () => {
             setShowToast(true);
             setJoinRoomEnable(true);
             setCreateRoomEnable(true);
-            setJoinedRoom(false);
         });
         listeners.onEvent("leaveRoom", function()
         {
             setJoinRoomEnable(true);
             setCreateRoomEnable(true);
-            setJoinedRoom(false);
         });
-        listeners.onEvent("joinRoom", (shouldGotoLobby : boolean) => { setJoinedRoom(true); setGotoLobby(shouldGotoLobby) });
         return clientApp.effectListeners(listeners);
     });
-
-    if (joinedRoom)
-    {
-        return <Redirect to={gotoLobby ? "/tabs" : "/page/PickCharacter" } />
-    }
 
     function joinRoom()
     {

@@ -14,7 +14,8 @@ class ClientApp
     websocket: WebSocket | null;
     playerDetails: PlayerDetails[];
     gameState: GameState;
-    listenerId: number;
+    loggedIn: boolean;
+    interaction: any;
 
     prevUIData: any;
 
@@ -35,7 +36,8 @@ class ClientApp
         this.turnId = -1;
         this.playerDetails = [];
         this.gameState = "LOGIN";
-        this.listenerId = 0;
+        this.loggedIn = false;
+        this.interaction = {};
         
         var localStorage = window.localStorage;
 
@@ -79,10 +81,11 @@ class ClientApp
         addProperty("discardedCardTotals", () => this.getCardDiscardedCountArray());
         addProperty("playerId", () => this.playerId);
         addProperty("gameState", () => this.gameState);
+        addProperty("loggedIn", () => this.loggedIn);
         addProperty("username", () => this.username);
         addProperty("roomcode", () => this.roomcode);
         addProperty("pickedCharacterId", () => this.pickedCharacterId);
-        addProperty("alreadyPickedIds", () => this.alreadyPickedIds);
+        addProperty("alreadyPickedIds", () => this.getAlreadyPickedCharacterIds());
         return uiValues;
     }
 
@@ -96,7 +99,7 @@ class ClientApp
             var valueStr = JSON.stringify(nextUIValue[p]);
             if (valueStr !== this.prevUIData[p])
             {
-                this.uiEventHandler.propertyChange(p as LVUIProperty, nextUIValue[p]);
+                this.uiEventHandler.propertyChange(p as LVUIProperty, JSON.parse(valueStr));
                 this.prevUIData[p] = valueStr;
             }
         }
@@ -132,17 +135,24 @@ class ClientApp
         };
         this.websocket.onclose = function (/*event*/) {
             that.uiEventHandler.triggerEvent("leaveRoom");
+            that.gameState = "LOGIN";
+            that.loggedIn = false;
+            that.updateUI();
         };
         this.websocket.onerror = function (/*event*/) {
             that.uiEventHandler.triggerEvent("connectionError", that.roomcode + "");
             that.roomcode = "";
+            that.loggedIn = false;
             that.updateUI();
         };
     }
 
     onopen()
     {
-        this.uiEventHandler.triggerEvent("joinRoom", false);
+        this.send({ "cmd": "GET" });
+        this.loggedIn = true;
+        this.updateUI();
+        this.uiEventHandler.triggerEvent("redirect", "/page/PickCharacter");
     }
 
     createRoom()
@@ -210,41 +220,20 @@ class ClientApp
 
     getAlreadyPickedCharacterIds()
     {
-        var alreadyPickedIds = [];
+        this.alreadyPickedIds = [];
 
         var i;
         var playerDetails;
         for (i = 0; i < this.playerDetails.length; i += 1)
         {
             playerDetails = this.playerDetails[i];
+            if (i === this.playerId)
+                continue;
             if (playerDetails.characterId !== undefined)
-                alreadyPickedIds.push(playerDetails.characterId);
+                this.alreadyPickedIds.push(playerDetails.characterId);
         }
-        return alreadyPickedIds;
+        return this.alreadyPickedIds;
     }
-
-    /*setupPickCharacter()
-    {
-        if (!this.loadedPages.pickcharacter)
-        {
-            return;
-        }
-
-        var data = {};
-
-        data.playerDetails = this.ui.playerDetails;
-        data.pickedCharacterId = this.pickedCharacterId;
-        data.selectedCharacterId = this.selectedCharacterId;
-        data.alreadyPickedIds = this.getAlreadyPickedCharacterIds();
-
-        ReactDOM.render(
-            PickCharacterPageContent(data),
-            document.getElementById('pickcharacterReact')
-        );
-        this.updatePickCharacterButton();
-
-        document.getElementById("pickCharacterRoomCodeSpan").innerHTML = this.getRoomCode();
-    }*/
 
     pickCharacter(selectedCharacterId : number)
     {
@@ -294,20 +283,6 @@ class ClientApp
         this.interaction = {};
     }
 
-    disconnect()
-    {
-        this.websocket.close();
-        this.localStorage.removeItem('room');
-        this.resetGame();
-    }
-
-    onopen()
-    {
-        this.send({ "cmd": "GET" });
-        this.gameState = null;
-        document.getElementById("roomCodeSpan").innerHTML = this.getRoomCode();
-    }
-
     start()
     {
         this.send({ "cmd": "START" });
@@ -329,35 +304,27 @@ class ClientApp
         var data = JSON.parse(strData);
         switch(data.cmd) {
             case "CHARACTER_ID_IN_USE":
-            {
-                // nothing to do
-            }
+                this.uiEventHandler.triggerEvent("pickedCharacterInUse");
             break;
             case "CHARACTER_PICKED":
-            {
                 this.playerDetails[data.playerId].characterId = data.characterId;
-                if (data.playerId == this.playerId)
+                if (data.playerId === this.playerId)
                 {
                     this.pickedCharacterId = data.characterId;
+                    this.uiEventHandler.triggerEvent("pickedCharacter");
                 }
-            }
             break;
             case "START_CARD":
-            {
                 this.playerId = data.playerId;
                 this.addCard(getCardType(data.pickup));
-            }
             break;
             case "PICKUP":
             case "YOUR_TURN":
-            {
                 // clear your SAFE state
                 this.playerDetails[this.playerId]["state"] = "ALIVE";
                 this.addCard(getCardType(data.pickup));
-            }
             break;
             case "JOINED":
-            {
                 this.playerDetails[data.index] = {
                     name: data.name,
                     characterId: data.characterId,
@@ -365,62 +332,48 @@ class ClientApp
                     state: "ALIVE",
                     discarded: []
                 };
-            }
             break;
             case "START_GAME":
             case "STATE":
             case "PLAYED":
-            case "ROUND_COMPLETE":
             case "NEXT_ROUND":
-            {
                 this.gotFullState(data);
-            }
             break;
             case "END_TURN":
-            {
                 this.endTurn();
                 this.gotFullState(data);
-            }
             break;
             case "REVEALED":
-            {
                 this.interaction.state = "CONTINUE";
                 this.reveal();
-            }
             break;
             case "NEXT_TURN":
-            {
                 this.nextTurn(data);
-            }
             break;
             case "DISCARD":
-            {
                 this.discard(data);
-            }
             break;
             case "ROUND_COMPLETE":
-            {
                 this.turnId = data.turn;
-                this.playerStates = data.playerStates;
+                this.updatePlayerDetails(data);
                 this.updateInteraction();
-            }
             break;
         }
 
         this.updateUI();
     }
-    /*
-    updateUIState(data)
+    
+    updatePlayerDetails(data : any)
     {
-        this.ui.playerDetails = [];
+        this.playerDetails = [];
         var i;
         for (i = 0; i < data.players.length; i += 1)
         {
             var player = data.players[i];
-            var playerDetails = {
+            var playerDetails : PlayerDetails = {
                 name: player.name,
                 characterId: player.characterId,
-                tokens: [3,4,5],
+                tokens: [],
                 state: "ALIVE",
                 discarded: []
             };
@@ -431,17 +384,18 @@ class ClientApp
                 var j;
                 for (j = 0; j < playerState.wins; j += 1)
                 {
-                    playerDetails.tokens.push(1);
+                    playerDetails.tokens.push({gem: 1});
                 }
                 for (j = 0; j < playerState.played.length; j += 1)
                 {
-                    playerDetails.discarded.push(cardTypes[playerState.played[j]]);
+                    playerDetails.discarded.push(getCardType(playerState.played[j]));
                 }
             }
 
-            this.ui.playerDetails.push(playerDetails);
+            this.playerDetails.push(playerDetails);
         }
     }
+    /*
 
     cardPlayStateReset()
     {
@@ -452,11 +406,11 @@ class ClientApp
     {
         this.cardPlayState.handCardId = handCardId;
         var cardType = cardTypes[this.hand[handCardId]];
-        if (cardType == "GUARD" ||
-            cardType == "PRIEST" ||
-            cardType == "BARON" ||
-            cardType == "PRINCE" ||
-            cardType == "KING")
+        if (cardType === "GUARD" ||
+            cardType === "PRIEST" ||
+            cardType === "BARON" ||
+            cardType === "PRINCE" ||
+            cardType === "KING")
         {
             this.cardPlayState.state = "PLAYED";
             this.setupGame();
@@ -470,7 +424,7 @@ class ClientApp
     pickTarget(targetId)
     {
         var cardType = cardTypes[this.hand[this.cardPlayState.handCardId]];
-        if (cardType == "GUARD")
+        if (cardType === "GUARD")
         {
             this.cardPlayState.target = targetId;
             this.cardPlayState.state = "GUESS";
@@ -489,7 +443,7 @@ class ClientApp
 
     playBack()
     {
-        if (this.cardPlayState.state == "PLAYED")
+        if (this.cardPlayState.state === "PLAYED")
         {
             this.cardPlayState.target = null;
             this.cardPlayState.state = "TURN";
@@ -501,73 +455,62 @@ class ClientApp
             this.setupGame();
         }
     }
-
-    gotFullState(data)
+    */
+    gotFullState(data : any)
     {
         if (data.playerId !== undefined)
             this.playerId = data.playerId;
         this.numPlayers = data.players.length;
 
-        var prevGameState = this.gameState;
         this.gameState = data.gamestate;
 
-        if (data.gamestate == "LOGIN")
+        if (data.gamestate === "LOGIN")
         {
-            this.updateUIState(data);
+            this.updatePlayerDetails(data);
             this.pickedCharacterId = data.players[this.playerId].characterId;
-            this.selectedCharacterId = this.pickedCharacterId;
-            this.cardPlayStateReset();
-            this.loadPage("pickcharacter.html");
-            this.setupPickCharacter();
         }
-        else if (data.gamestate == "PLAYING")
+        else if (data.gamestate === "PLAYING")
         {
             this.hand = data.hand || [];
             this.turnId = data.turn;
-            this.playerStates = data.playerStates;
             this.interaction = data.interaction;
-            this.cardPlayState = {state: this.turnId == this.playerId ? "TURN" : "WAIT"};
-            this.updateUIState(data);
-            this.loadPage("game.html");
-            this.setupGame();
+            this.updatePlayerDetails(data);
         }
     }
 
-    discard(data)
+    discard(data : any)
     {
-        var playerState = this.playerStates[data.playerId];
-        if (data.playerId == this.playerId)
+        var playerDetails = this.playerDetails[data.playerId];
+        if (data.playerId === this.playerId)
         {
             var i;
             for (i = 0; i < this.hand.length; i += 1)
             {
-                if (data.card == this.hand[i])
+                if (data.card === this.hand[i])
                 {
-                    playerState.played.push(data.card);
+                    playerDetails.discarded.push(data.card);
                     this.hand.splice(i, 1);
                 }
             }
         }
         else
         {
-            playerState.played.push(data.card);
+            playerDetails.discarded.push(data.card);
         }
     }
 
-    nextTurn(data)
+    nextTurn(data : any)
     {
         this.turnId = data.turn;
         this.interaction = {};
-        // TODO update gui
     }
 
-    */
     addCard(card : CardType)
     {
         var i;
         for (i = 0; i < this.hand.length; i += 1)
         {
-            if (card == this.hand[i])
+            if (card === this.hand[i])
             {
                 return;
             }
@@ -575,20 +518,20 @@ class ClientApp
         this.hand.push(card);
     }
 
-    /*
     roundComplete()
     {
     }
 
+    /*
     pickPlayer(pickedId)
     {
-        if (pickedId == -1) // back
+        if (pickedId === -1) // back
         {
             this.resetTurnState();
             return;
         }
 
-        if (this.playingCardStr == "GUARD" && this.anyValidTargets())
+        if (this.playingCardStr === "GUARD" && this.anyValidTargets())
         {
         }
         else
@@ -599,7 +542,7 @@ class ClientApp
 
     guess(guessCardIndex)
     {
-        if (guessCardIndex == -1) // back
+        if (guessCardIndex === -1) // back
         {
             return;
         }
@@ -611,9 +554,9 @@ class ClientApp
     sendPlayCard(cardId, target, guess)
     {
         var cmd;
-        if (cardId == 0)
+        if (cardId === 0)
             cmd = "PLAY_HAND";
-        else if (cardId == 1)
+        else if (cardId === 1)
             cmd = "PLAY_PICKUP";
 
         var msg = { "room": this.getRoomCode(), "cmd": cmd };
@@ -643,41 +586,35 @@ class ClientApp
         var i;
         for (i = 0; i < this.playerStates.length; i += 1)
         {
-            if (i != this.turnId && this.playerStates[i].state == "ALIVE")
+            if (i !== this.turnId && this.playerStates[i].state === "ALIVE")
             {
                 return true;
             }
         }
         return false;
     }
-
+    */
     reveal()
     {
-        var i;
-        var j;
-        var myTurn = this.playerId == this.turnId;
-        var target = this.interaction.target;
-        var isTarget = this.playerId == target;
-        var cardStr = cardTypes[this.interaction.card];
-        if (cardStr == "KING" && this.interaction.swClientAppedFor !== undefined)
+        var cardStr = getCardType(this.interaction.card);
+        if (cardStr === "KING" && this.interaction.swappedFor !== undefined)
         {
-            this.hand[0] = this.interaction.swClientAppedFor;
-            this.updateHandText();
+            this.hand[0] = this.interaction.swappedFor;
         }
     }
-
+    
     endTurn()
     {
     }
-
+    
     updateInteraction()
     {
-        if (this.interaction.state == "ROUND_COMPLETE")
+        if (this.interaction.state === "ROUND_COMPLETE")
         {
             this.roundComplete();
             return;
         }
-    }*/
+    }
 }
 
 export let clientApp = new ClientApp();

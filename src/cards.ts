@@ -81,11 +81,6 @@ function init()
 }
 init();
 
-export function getCardName(card : number) : string
-{
-    return cardDetailsMapExport[cardTypes[card]].name + " (" + cardDetailsMapExport[cardTypes[card]].value + ")";
-}
-
 export function getCardType(card : number) : CardType
 {
     return cardTypesExport[card] as CardType;

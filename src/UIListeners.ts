@@ -7,6 +7,7 @@ export type LVUIProperty =
     | "discardedCardTotals"
     | "playerId"
     | "gameState"
+    | "loggedIn"
     | "username"
     | "roomcode"
     | "pickedCharacterId"
@@ -16,7 +17,9 @@ export type LVUIEvent =
     "leaveRoom"
     | "connectionError"
     | "joinRoom"
-    | "pickedCharacter";
+    | "pickedCharacter"
+    | "pickedCharacterInUse"
+    | "redirect";
 
 type LVListenerType = "PROPERTY" | "EVENT";
 export class LVListener

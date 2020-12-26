@@ -9,7 +9,7 @@ import {
     IonTitle,
     IonToolbar} from '@ionic/react';
 import React, { useEffect, useState } from 'react';
-import { CardType, getCardType, totalNumberOfCards } from '../cards';
+import { CardType, totalNumberOfCards } from '../cards';
 import { CardName, DotDotDot, LVCard, InteractionCard, PlayerCharacter, PlayerDetails, PlayerState, Token, GameState } from '../Shared';
 import './Page.css';
 import { chevronDownOutline, chevronUpOutline } from 'ionicons/icons';

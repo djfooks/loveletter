@@ -52,12 +52,14 @@ const PickCharacterPage: React.FC = () => {
     const [alreadyPickedIds, setAlreadyPickedIds] = useState<number[]>(clientApp.getUiProperty("alreadyPickedIds"));
     const [pickedCharacterId, setPickedCharacterId] = useState<number>(clientApp.getUiProperty("pickedCharacterId"));
     const [gotoLobby, setGotoLobby] = useState<boolean>(false);
+    const [pickDisabled, setPickDisabled] = useState<boolean>(false);
 
     useEffect(() => {
         var listeners = new LVListenerList();
         listeners.onPropertyChange("pickedCharacterId", function(value) { setPickedCharacterId(value); });
         listeners.onPropertyChange("alreadyPickedIds", function(value) { setAlreadyPickedIds(value); });
-        listeners.onEvent("pickedCharacter", function () { setGotoLobby(true); })
+        listeners.onEvent("pickedCharacter", function () { setGotoLobby(true); });
+        listeners.onEvent("pickedCharacterInUse", function () { setPickDisabled(false); });
         return clientApp.effectListeners(listeners);
     });
 
@@ -68,6 +70,7 @@ const PickCharacterPage: React.FC = () => {
 
     function handlePickClick()
     {
+        setPickDisabled(true);
         clientApp.pickCharacter(selectedCharacterId);
     }
 
@@ -85,7 +88,7 @@ const PickCharacterPage: React.FC = () => {
                 </IonButtons>
                 <IonTitle>
                     <IonButton
-                        disabled={selectedCharacterId === -1 || (pickedCharacterId !== selectedCharacterId && alreadyPickedIds.indexOf(selectedCharacterId) !== -1)}
+                        disabled={selectedCharacterId === -1 || (pickedCharacterId !== selectedCharacterId && alreadyPickedIds.indexOf(selectedCharacterId) !== -1) || pickDisabled}
                         onClick={handlePickClick}
                         >
                         Pick Character
