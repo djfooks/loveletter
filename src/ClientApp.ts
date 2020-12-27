@@ -1,5 +1,5 @@
 import { CardType, getCardType, orderedCards } from "./cards";
-import { GameState, PlayerDetails } from "./Shared";
+import { GameState, Interaction, PlayerDetails } from "./Shared";
 import { EventHandler, LVListenerList, LVUIProperty } from "./UIListeners";
 
 class ClientApp
@@ -15,12 +15,13 @@ class ClientApp
     playerDetails: PlayerDetails[];
     gameState: GameState;
     loggedIn: boolean;
-    interaction: any;
 
     prevUIData: any;
 
     hand : CardType[];
     turnId : number;
+    interaction : Interaction;
+    hasInteraction : boolean;
 
     uiEventHandler : EventHandler;
 
@@ -37,7 +38,12 @@ class ClientApp
         this.playerDetails = [];
         this.gameState = "LOGIN";
         this.loggedIn = false;
-        this.interaction = {};
+        this.hasInteraction = false;
+        this.interaction = {
+            targetId: -1,
+            playedCard: "GUARD",
+            status: "REVEAL"
+        };
         
         var localStorage = window.localStorage;
 
@@ -53,6 +59,17 @@ class ClientApp
         this.websocket = null;
 
         this.prevUIData = {};
+
+        function preloadImage(url : string)
+        {
+            var img = new Image();
+            img.src = url;
+        }
+        var i;
+        for (i = 0; i < orderedCards.length; i += 1)
+        {
+            preloadImage("img/" + orderedCards[i] + ".png");
+        }
     }
 
     effectListeners(listeners : LVListenerList)
@@ -67,7 +84,19 @@ class ClientApp
 
     buildUIValues(p : LVUIProperty | null) : any
     {
-        var uiValues : any = {};
+        var uiValues : any = {
+            playerDetails: this.playerDetails,
+            hand: this.hand,
+            playerId: this.playerId,
+            turnId: this.turnId,
+            interaction: this.interaction,
+            hasInteraction: this.hasInteraction,
+            gameState: this.gameState,
+            loggedIn: this.loggedIn,
+            username: this.username,
+            roomcode: this.roomcode,
+            pickedCharacterId: this.pickedCharacterId,
+        };
         function addProperty(prop : LVUIProperty, cb : any)
         {
             if (p === null || prop === p)
@@ -75,17 +104,7 @@ class ClientApp
                 uiValues[prop] = cb();
             }
         }
-
-        addProperty("playerDetails", () => this.playerDetails);
-        addProperty("hand", () => this.hand);
         addProperty("discardedCardTotals", () => this.getCardDiscardedCountArray());
-        addProperty("playerId", () => this.playerId);
-        addProperty("turnId", () => this.turnId);
-        addProperty("gameState", () => this.gameState);
-        addProperty("loggedIn", () => this.loggedIn);
-        addProperty("username", () => this.username);
-        addProperty("roomcode", () => this.roomcode);
-        addProperty("pickedCharacterId", () => this.pickedCharacterId);
         addProperty("alreadyPickedIds", () => this.getAlreadyPickedCharacterIds());
         return uiValues;
     }
@@ -321,7 +340,7 @@ class ClientApp
             case "PICKUP":
             case "YOUR_TURN":
                 // clear your SAFE state
-                this.playerDetails[this.playerId]["state"] = "ALIVE";
+                this.playerDetails[this.playerId].state = "ALIVE";
                 this.addCard(getCardType(data.pickup));
             break;
             case "JOINED":
@@ -344,7 +363,7 @@ class ClientApp
                 this.gotFullState(data);
             break;
             case "REVEALED":
-                this.interaction.state = "CONTINUE";
+                this.interaction.status = "CONTINUE";
                 this.reveal();
             break;
             case "NEXT_TURN":
@@ -390,6 +409,7 @@ class ClientApp
                 {
                     playerDetails.discarded.push(getCardType(playerState.played[j]));
                 }
+                playerDetails.state = playerState.state;
             }
 
             if (this.playerId === i)
@@ -462,7 +482,7 @@ class ClientApp
         var prevGameState = this.gameState;
         this.gameState = data.gamestate;
         
-        if (prevGameState !== this.gameState)
+        if (prevGameState === "LOGIN")
         {
             this.uiEventHandler.triggerEvent("redirect", (data.gamestate === "LOGIN") ? "/page/PickCharacter" : "/tabs");
         }
@@ -475,8 +495,30 @@ class ClientApp
         {
             this.covertHandNumbersToCards(data.hand || []);
             this.turnId = data.turn;
-            this.interaction = data.interaction;
+            var prevHadInteraction = this.hasInteraction;
+            this.hasInteraction = data.interaction.state !== undefined;
+            if (this.hasInteraction)
+            {
+                this.interaction = {
+                    playedCard: getCardType(data.interaction.card),
+                    otherCard: getCardType(data.interaction.otherCard),
+                    status: data.interaction.state,
+                    guess: data.interaction.guess,
+                    result: data.interaction.result,
+                    targetId: data.interaction.target,
+                    loserId: data.interaction.loser,
+                    revealedCard: getCardType(data.interaction.revealedCard),
+                    discard: getCardType(data.interaction.discard),
+                    swappedFor: getCardType(data.interaction.swappedFor),
+                    prevCard: getCardType(data.interaction.prevCard),
+                };
+            }
             this.updatePlayerDetails(data);
+
+            if (this.hasInteraction && !prevHadInteraction)
+            {
+                this.uiEventHandler.triggerEvent("redirect", "/tabs/interaction");
+            }
         }
     }
 
@@ -514,7 +556,7 @@ class ClientApp
     nextTurn(data : any)
     {
         this.turnId = data.turn;
-        this.interaction = {};
+        this.hasInteraction = false;
     }
 
     addCard(card : CardType)
@@ -535,38 +577,6 @@ class ClientApp
     }
 
     /*
-    pickPlayer(pickedId)
-    {
-        if (pickedId === -1) // back
-        {
-            this.resetTurnState();
-            return;
-        }
-
-        if (this.playingCardStr === "GUARD" && this.anyValidTargets())
-        {
-        }
-        else
-        {
-            this.sendPlayCard(this.playingCardId, pickedId);
-        }
-    }
-
-    guess(guessCardIndex)
-    {
-        if (guessCardIndex === -1) // back
-        {
-            return;
-        }
-
-        var cardStr = orderedCards[guessCardIndex];
-        this.sendPlayCard(this.playingCardId, this.pickedPlayer, cardStr);
-    }
-
-    sendPlayCard(cardId, target, guess)
-    {
-    }
-
     getOtherCard()
     {
         var i;
@@ -591,10 +601,14 @@ class ClientApp
         return false;
     }
     */
+    interactionStep()
+    {
+        this.send({"cmd": this.interaction.status});
+    }
+
     reveal()
     {
-        var cardStr = getCardType(this.interaction.card);
-        if (cardStr === "KING" && this.interaction.swappedFor !== undefined)
+        if (this.interaction.playedCard === "KING" && this.interaction.swappedFor !== undefined)
         {
             this.hand[0] = this.interaction.swappedFor;
         }
@@ -602,11 +616,12 @@ class ClientApp
     
     endTurn()
     {
+        this.hasInteraction = false;
     }
     
     updateInteraction()
     {
-        if (this.interaction.state === "ROUND_COMPLETE")
+        if (this.interaction.status === "ROUND_COMPLETE")
         {
             this.roundComplete();
             return;

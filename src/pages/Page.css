@@ -30,6 +30,22 @@ ion-card {
     vertical-align: middle;
 }
 
+.cardOptionLine
+{
+    width: 100%;
+    height: 32px;
+}
+
+.cardOptionLeft
+{
+    float: left;
+}
+
+.cardOptionRight
+{
+    float: right;
+}
+
 .playerTopLine
 {
     width: 100%;
@@ -39,11 +55,15 @@ ion-card {
 .playerTopLineLeft
 {
     float: left;
+    height: 64px;
+    vertical-align: middle;
 }
 
 .playerTopLineRight
 {
     float: right;
+    height: 64px;
+    vertical-align: middle;
 }
 
 .fullBox
@@ -242,7 +262,7 @@ ion-card {
 .cardNameCOUNTESS  { color: #8390aa; }
 .cardNamePRINCESS  { color: #b9af9a; }
 
-.swipeHack
+.scrollHack
 {
-    padding-bottom: 300px;
+    padding-bottom: 100px;
 }

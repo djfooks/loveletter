@@ -122,7 +122,7 @@ function PlayCard(props : {playerDetails : PlayerDetails[], playerId : number, h
                                 {
                                     playerDetails.state !== "ALIVE" ? null :
                                         <span className="playerTopLineRight">
-                                            <IonButton onClick={(e) => handlePickTargetClick(index)} disabled={waiting}>PICK</IonButton>
+                                            <IonButton className="verticalAlignMiddle" onClick={(e) => handlePickTargetClick(index)} disabled={waiting}>PICK</IonButton>
                                         </span>
                                 }
                             </div>
@@ -170,19 +170,30 @@ function PlayCard(props : {playerDetails : PlayerDetails[], playerId : number, h
                 <LVCard>
                     <IonList>
                         <IonItem>
-                            <div className="right">
-                                (# Played / # In Deck)
+                            <div className="fullBox">
+                                <div className="cardOptionLine">
+                                    <span className="cardOptionRight">
+                                        (# Played / # In Deck)
+                                    </span>
+                                </div>
                             </div>
                         </IonItem>
                         {
+
                             orderedCards.map((cardType : CardType, index) =>
                                 (cardType === "GUARD") ? null :
                                 <IonItem key={index}>
-                                    <CardName card={cardType} />
-                                    <div className="right">
-                                        <IonButton disabled={waiting} onClick={(e) => handlePickGuessClick(cardType)}>
-                                            Pick ({props.discardedCardTotals[index]} / {getCardDetails(cardType).numInDeck})
-                                        </IonButton>
+                                    <div className="fullBox">
+                                        <div className="cardOptionLine">
+                                            <span className="cardOptionLeft">
+                                                <CardName card={cardType} />
+                                            </span>
+                                            <span className="cardOptionRight">
+                                                <IonButton disabled={waiting} className="verticalAlignMiddle" onClick={(e) => handlePickGuessClick(cardType)}>
+                                                    Pick ({props.discardedCardTotals[index]} / {getCardDetails(cardType).numInDeck})
+                                                </IonButton>
+                                            </span>
+                                        </div>
                                     </div>
                                 </IonItem>
                             )
@@ -208,7 +219,7 @@ function CardPage(props: {handId: number})
 
     useEffect(() => {
         var listeners = new LVListenerList();
-        listeners.onPropertyChange("hand", function(value) { setHand(value); });
+        listeners.onPropertyChange("hand", function(value : CardType[]) { setHand(value); });
         listeners.onPropertyChange("playerDetails", function(value : PlayerDetails[]) { setPlayerDetails(value); });
         listeners.onPropertyChange("discardedCardTotals", function(value : number[]) { setDiscardedCardTotals(value); });
         listeners.onPropertyChange("playerId", function(value : number) { setPlayerId(value); });
@@ -217,6 +228,11 @@ function CardPage(props: {handId: number})
     });
 
     var handId = props.handId;
+
+    if (handId >= hand.length)
+    {
+        return null;
+    }
 
     return (
     <IonPage>

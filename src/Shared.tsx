@@ -19,6 +19,20 @@ export interface PlayerDetails {
     discarded: CardType[];
 }
 
+export interface Interaction {
+    playedCard : CardType;
+    status : "REVEAL" | "CONTINUE" | "ROUND_COMPLETE";
+    targetId? : number;
+    guess? : CardType;
+    result? : "CORRECT_GUESS" | "TIE";
+    loserId? : number;
+    revealedCard? : CardType;
+    otherCard? : CardType;
+    discard? : CardType;
+    swappedFor? : CardType;
+    prevCard? : CardType;
+}
+
 export function LVCard(props : {children: any})
 {
     return (

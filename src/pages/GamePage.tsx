@@ -91,7 +91,7 @@ export class PlayerLine extends React.Component<PlayerLineProps, PlayerLineState
                 {
                     (this.props.playerDetails.discarded.length === 0 || !this.state.dropdownOpen) ? null :
                     <>
-                        <div>Last played:</div>
+                        <div>Discarded:</div>
                         <DiscardList cards={this.props.playerDetails.discarded} />
                     </>
                 }

@@ -71,7 +71,7 @@ const Menu: React.FC = () => {
     return (
         <IonMenu contentId="main" type="overlay">
             <IonContent>
-                <IonList id="inbox-list">
+                <IonList>
                     <IonItem lines="none" detail={false}>
                         <IonIcon slot="start" icon={codeOutline} />
                         <IonLabel>Room: {room}</IonLabel>

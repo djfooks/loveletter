@@ -7,6 +7,8 @@ export type LVUIProperty =
     | "discardedCardTotals"
     | "playerId"
     | "turnId"
+    | "interaction"
+    | "hasInteraction"
     | "gameState"
     | "loggedIn"
     | "username"
