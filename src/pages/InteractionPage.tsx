@@ -61,7 +61,16 @@ function InteractionContent()
     }, []);
 
     if (interaction.status !== "REVEAL" && interaction.status !== "CONTINUE")
-        return <InteractionCard>Waiting for turn</InteractionCard>;
+    {
+        if (playerDetails !== undefined && turnId !== undefined && turnId >= 0 && turnId < playerDetails.length)
+        {
+            return <InteractionCard>Waiting for <PlayerCharacterName playerDetails={playerDetails[turnId]!} /></InteractionCard>;
+        }
+        else
+        {
+            return <InteractionCard>Waiting for something to happen...</InteractionCard>;
+        }
+    }
 
     var turnPlayerDetails = playerDetails[turnId];
     var targetPlayerDetails : PlayerDetails | null = null;

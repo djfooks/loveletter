@@ -39,10 +39,10 @@ export interface Interaction {
     winnerIds? : number[];
 }
 
-export function LVCard(props : {children: any})
+export function LVCard(props : {children: any, highlight? : boolean})
 {
     return (
-        <div className="myCard">
+        <div className={props.highlight ? "myCard myCardHighlight" : "myCard"}>
             {props.children}
         </div>
     );

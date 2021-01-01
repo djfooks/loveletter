@@ -102,10 +102,10 @@ export class PlayerLine extends React.Component<PlayerLineProps, PlayerLineState
     }
 }
 
-function PlayersList(props : {playerDetails : PlayerDetails[]})
+function PlayersList(props : {playerDetails : PlayerDetails[], turnId : number})
 {
     return (<>{props.playerDetails.map((playerDetails, index) =>
-        <LVCard key={playerDetails.name}>
+        <LVCard key={playerDetails.name} highlight={props.turnId === index}>
             <PlayerLine playerDetails={playerDetails} hasDropdown={playerDetails.discarded.length > 0} />
         </LVCard>
     )}</>);
@@ -184,6 +184,7 @@ const GamePage: React.FC = () => {
     const [discardedCardTotals, setDiscardedCardTotals] = useState<number[]>(clientApp.getUiProperty("discardedCardTotals"));
     const [gameState, setGameState] = useState<GameState>(clientApp.getUiProperty("gameState"));
     const [playerId, setPlayerId] = useState<number>(clientApp.getUiProperty("playerId"));
+    const [turnId, setTurnId] = useState<number>(clientApp.getUiProperty("turnId"));
     
     useEffect(() => {
         var listeners = new LVListenerList("game");
@@ -191,6 +192,7 @@ const GamePage: React.FC = () => {
         listeners.onPropertyChange("discardedCardTotals", function(value : number[]) { setDiscardedCardTotals(value); });
         listeners.onPropertyChange("gameState", function(value : GameState) { setGameState(value); });
         listeners.onPropertyChange("playerId", function(value : number) { setPlayerId(value); });
+        listeners.onPropertyChange("turnId", function(value : number) { setTurnId(value); });
         return clientApp.effectListeners(listeners);
     }, []);
 
@@ -206,7 +208,7 @@ const GamePage: React.FC = () => {
                 </IonToolbar>
             </IonHeader>
             <TopLine discardedCardTotals={discardedCardTotals} playerDetails={playerDetails} />
-            <PlayersList playerDetails={playerDetails} />
+            <PlayersList playerDetails={playerDetails} turnId={turnId} />
             <StartGameCard gameState={gameState} playerId={playerId} />
         </IonContent>
     </IonPage>

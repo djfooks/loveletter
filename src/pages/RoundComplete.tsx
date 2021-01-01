@@ -21,6 +21,7 @@ function RoundEndPlayersListItem(props : {playerDetails : PlayerDetails, finalCa
                     </div>
                 : (!props.finalCard ? null :
                     <div className="alignRight">
+                        <span className="middlerHack"></span>
                         <span className="hspacer"></span><CardName card={props.finalCard!}/>
                     </div>)
             }

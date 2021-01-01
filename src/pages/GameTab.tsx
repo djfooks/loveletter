@@ -11,7 +11,7 @@ import './Page.css';
 import { caretForwardCircleOutline, accessibilityOutline, tabletPortraitOutline } from 'ionicons/icons';
 import GamePage from './GamePage';
 import CardPage from './CardPage';
-import { CardName } from '../Shared';
+import { CardName, PlayerDetails, PlayerState } from '../Shared';
 import { CardType } from '../cards';
 import { clientApp } from '../ClientApp';
 import { LVListenerList } from '../UIListeners';
@@ -20,18 +20,26 @@ import InteractionPage from './InteractionPage';
 const GameTabPage: React.FC = () => {
 
     const [hand, setHand] = useState<CardType[]>(clientApp.getUiProperty("hand"));
-    //const [hasInteraction, setHasInteraction] = useState<boolean>(clientApp.getUiProperty("hasInteraction"));
+    const [playerDetails, setPlayerDetails] = useState<PlayerDetails[]>(clientApp.getUiProperty("playerDetails"));
+    const [playerId, setPlayerId] = useState<number>(clientApp.getUiProperty("playerId"));
     
     useEffect(() => {
         var listeners = new LVListenerList("game");
         listeners.onPropertyChange("hand", function(value) { setHand(value); });
-        //listeners.onPropertyChange("hasInteraction", function(value : boolean) { setHasInteraction(value); });
+        listeners.onPropertyChange("playerDetails", function(value : PlayerDetails[]) { setPlayerDetails(value); });
+        listeners.onPropertyChange("playerId", function(value : number) { setPlayerId(value); });
         return clientApp.effectListeners(listeners);
     }, []);
 
-    function handleClick()
+    var cardIcon = <IonIcon icon={tabletPortraitOutline} />;
+    var isDead = false;
+    if (playerDetails && playerId !== undefined && playerId >= 0 && playerId < playerDetails.length)
     {
-        window.alert("yay");
+        if (playerDetails[playerId].state === "DEAD")
+        {
+            cardIcon = <PlayerState status="DEAD"></PlayerState>;
+            isDead = true;
+        }
     }
 
     return (
@@ -45,28 +53,27 @@ const GameTabPage: React.FC = () => {
             <Route path="/tabs/interaction" render={() => <InteractionPage />} exact />
         </IonRouterOutlet>
         <IonTabBar slot="bottom">
-            {
-                <IonTabButton tab="interaction" href="/tabs/interaction">
-                    <IonIcon icon={caretForwardCircleOutline} />
-                    <IonLabel>Action</IonLabel>
-                </IonTabButton>
-            }
+            <IonTabButton tab="interaction" href="/tabs/interaction">
+                <IonIcon icon={caretForwardCircleOutline} />
+                <IonLabel>Action</IonLabel>
+            </IonTabButton>
             <IonTabButton tab="game" href="/tabs/game">
                 <IonIcon icon={accessibilityOutline} />
                 <IonLabel>Players</IonLabel>
             </IonTabButton>
             {
-                <IonTabButton tab="card0" href="/tabs/card/0">
-                    <IonIcon icon={tabletPortraitOutline} />
+                <IonTabButton tab="card0" href="/tabs/card/0" disabled={isDead}>
+                    {cardIcon}
                     {
-                        hand.length === 0 ? "None" :
-                        <CardName card={hand[0]}></CardName>
+                        isDead ? "DEAD" : (
+                            hand.length === 0 ? "None" :
+                            <CardName card={hand[0]}></CardName>)
                     }
                 </IonTabButton>
             }
             {
                 hand.length <= 1 ? "None" :
-                <IonTabButton tab="card1" href="/tabs/card/1" onClick={handleClick}>
+                <IonTabButton tab="card1" href="/tabs/card/1">
                     <IonIcon icon={tabletPortraitOutline} />
                     <CardName card={hand[1]}></CardName>
                 </IonTabButton>

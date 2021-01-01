@@ -113,6 +113,11 @@ ion-card {
                                   supported by Chrome, Edge, Opera and Firefox */
 }
 
+.myCardHighlight
+{
+    background-color: #dfe8f7;
+}
+
 .interactionText
 {   
     text-align: center;
