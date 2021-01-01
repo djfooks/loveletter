@@ -21,7 +21,7 @@ export interface PlayerDetails {
 
 export interface Interaction {
     playedCard : CardType;
-    status : "REVEAL" | "CONTINUE" | "ROUND_COMPLETE";
+    status : "REVEAL" | "CONTINUE" | "ROUND_COMPLETE" | null;
     targetId? : number;
     guess? : CardType;
     result? : "CORRECT_GUESS" | "TIE";
@@ -30,7 +30,13 @@ export interface Interaction {
     otherCard? : CardType;
     discard? : CardType;
     swappedFor? : CardType;
+    swappedForCardId? : number;
     prevCard? : CardType;
+    
+    // round end state
+    hiddenCard? : CardType;
+    finalCards? : CardType[];
+    winnerIds? : number[];
 }
 
 export function LVCard(props : {children: any})

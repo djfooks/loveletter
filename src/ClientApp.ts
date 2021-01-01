@@ -19,30 +19,32 @@ class ClientApp
     prevUIData: any;
 
     hand : CardType[];
+    handIds : number[];
     turnId : number;
     interaction : Interaction;
-    hasInteraction : boolean;
 
     uiEventHandler : EventHandler;
+    delayUiUpdates : boolean;
 
     constructor()
     {
         this.uiEventHandler = new EventHandler();
+        this.delayUiUpdates = false;
 
         this.pickedCharacterId = -1;
         this.alreadyPickedIds = [];
         this.playerId = -1;
         this.numPlayers = 0;
         this.hand = [];
+        this.handIds = [];
         this.turnId = -1;
         this.playerDetails = [];
         this.gameState = "LOGIN";
         this.loggedIn = false;
-        this.hasInteraction = false;
         this.interaction = {
             targetId: -1,
             playedCard: "GUARD",
-            status: "REVEAL"
+            status: null
         };
         
         var localStorage = window.localStorage;
@@ -74,8 +76,9 @@ class ClientApp
 
     effectListeners(listeners : LVListenerList)
     {
-        this.uiEventHandler.register(listeners);
         var that = this;
+        listeners.setProperties(this.buildUIValues(null));
+        this.uiEventHandler.register(listeners);
         return function ()
         {
             that.uiEventHandler.clean(listeners);
@@ -90,7 +93,6 @@ class ClientApp
             playerId: this.playerId,
             turnId: this.turnId,
             interaction: this.interaction,
-            hasInteraction: this.hasInteraction,
             gameState: this.gameState,
             loggedIn: this.loggedIn,
             username: this.username,
@@ -109,19 +111,19 @@ class ClientApp
         return uiValues;
     }
 
-    updateUI()
+    updateUI(tag : string = "")
     {
+        if (this.delayUiUpdates && tag === "")
+            return;
+
         var nextUIValue : any = this.buildUIValues(null);
 
         var p : string;
         for (p in this.uiEventHandler.properties)
         {
-            var valueStr = JSON.stringify(nextUIValue[p]);
-            if (valueStr !== this.prevUIData[p])
-            {
-                this.uiEventHandler.propertyChange(p as LVUIProperty, JSON.parse(valueStr));
-                this.prevUIData[p] = valueStr;
-            }
+            var valueStr = JSON.stringify(nextUIValue[p])
+            this.uiEventHandler.propertyChange(p as LVUIProperty, valueStr, JSON.parse(valueStr), tag);
+            this.prevUIData[p] = valueStr;
         }
     }
 
@@ -133,6 +135,7 @@ class ClientApp
     resetGame()
     {
         this.hand = [];
+        this.handIds = [];
         this.turnId = -1;
     }
 
@@ -197,46 +200,6 @@ class ClientApp
         xhr.send();
     }
 
-    /*
-    setupInteraction()
-    {
-        var data = {};
-
-        data.playerDetails = this.playerDetails;
-        data.playerId = 1;
-        data.playerTurn = 0;
-        data.playerTarget = 1;
-        data.playedCard = "PRINCE";
-        data.otherCard = "KING";
-        data.guessed = "PRINCE";
-        data.interactionStatus = "CONTINUE";
-        data.result = "LOSE";
-        data.revealedCard = "GUARD";
-        data.loser = 0;
-        data.discard = "GUARD";
-
-        ReactDOM.render(
-            InteractionPageContent(data),
-            document.getElementById('interactionReact')
-        );
-    }
-
-    setupRoundEnd()
-    {
-        var data = {};
-
-        data.playerDetails = this.playerDetails;
-        data.winnerIds = [1, 2];
-        data.finalCards = ["PRIEST", "KING", "PRIEST", "GUARD"];
-        data.hiddenCard = "BARON";
-
-        ReactDOM.render(
-            RoundEndPageContent(data),
-            document.getElementById('roundendReact')
-        );
-    }
-    */
-
     getAlreadyPickedCharacterIds()
     {
         this.alreadyPickedIds = [];
@@ -293,15 +256,6 @@ class ClientApp
         this.websocket!.send(JSON.stringify(jsonData));
     }
 
-    /*resetTurnState()
-    {
-        this.playingCardId = -1;
-        this.playingCard = -1;
-        this.playingCardStr = '';
-        this.pickedPlayer = -1;
-        this.interaction = {};
-    }
-    */
     start()
     {
         this.send({ "cmd": "START" });
@@ -320,6 +274,10 @@ class ClientApp
     */
     onmessage(strData : string)
     {
+        var prevInteractionStatus = this.interaction.status;
+        if (prevInteractionStatus === "CONTINUE")
+            prevInteractionStatus = "REVEAL";
+
         var data = JSON.parse(strData);
         switch(data.cmd) {
             case "CHARACTER_ID_IN_USE":
@@ -335,31 +293,38 @@ class ClientApp
             break;
             case "START_CARD":
                 this.playerId = data.playerId;
-                this.addCard(getCardType(data.pickup));
+                this.addCard(data.pickup);
             break;
             case "PICKUP":
             case "YOUR_TURN":
                 // clear your SAFE state
                 this.playerDetails[this.playerId].state = "ALIVE";
-                this.addCard(getCardType(data.pickup));
+                this.addCard(data.pickup);
             break;
             case "JOINED":
-                this.playerDetails[data.index] = {
-                    name: data.name,
-                    characterId: data.characterId,
-                    tokens: [],
-                    state: "ALIVE",
-                    discarded: []
-                };
+                if (data.index >= this.playerDetails.length)
+                {
+                    this.playerDetails[data.index] = {
+                        name: data.name,
+                        characterId: data.characterId,
+                        tokens: [],
+                        state: "ALIVE",
+                        discarded: []
+                    };
+                }
+                else
+                {
+                    var joinedPlayer = this.playerDetails[data.index];
+                    joinedPlayer.name = data.name;
+                    joinedPlayer.characterId = data.characterId;
+                }
             break;
             case "START_GAME":
             case "STATE":
             case "PLAYED":
             case "NEXT_ROUND":
-                this.gotFullState(data);
-            break;
             case "END_TURN":
-                this.endTurn();
+            case "ROUND_COMPLETE":
                 this.gotFullState(data);
             break;
             case "REVEALED":
@@ -372,11 +337,55 @@ class ClientApp
             case "DISCARD":
                 this.discard(data);
             break;
-            case "ROUND_COMPLETE":
-                this.turnId = data.turn;
-                this.updatePlayerDetails(data);
-                this.updateInteraction();
-            break;
+        }
+
+        var newInteractionStatus = this.interaction.status;
+        if (newInteractionStatus === "CONTINUE")
+            newInteractionStatus = "REVEAL";
+
+        if (newInteractionStatus !== prevInteractionStatus)
+        {
+            var gotoTab : String | undefined;
+            if (this.interaction.status !== null)
+            {
+                if (this.interaction.status === "ROUND_COMPLETE")
+                {
+                    this.updateUI("roundComplete");
+                    gotoTab = "/page/RoundComplete";
+                }
+                else
+                {
+                    this.updateUI("interaction");
+                    gotoTab = "/tabs/interaction";
+                }
+            }
+            else if (window.location.pathname === "/tabs/interaction" ||
+                     window.location.pathname === "/page/RoundComplete")
+            {
+                this.updateUI("game");
+                gotoTab = "/tabs/game";
+            }
+            
+            if (gotoTab)
+            {
+                this.delayUiUpdates = true; // delay any UI updates until the page has changed...
+
+                var that = this;
+                setTimeout(function ()
+                {
+                    // once the page UI has updated switch to it
+                    that.uiEventHandler.triggerEvent("redirect", gotoTab);
+                    var intervalId = setInterval(function ()
+                    {
+                        if (window.location.pathname === gotoTab)
+                        {
+                            that.delayUiUpdates = false;
+                            that.updateUI();
+                            clearInterval(intervalId!);
+                        }
+                    }, 10);
+                }, 1);
+            }
         }
 
         this.updateUI();
@@ -435,44 +444,9 @@ class ClientApp
         if (guess !== undefined)
             msg["guess"] = guess;
         this.send(msg);
-
-        this.hand.splice(handCardId, 1);
-    }
-    /*
-    pickTarget(targetId)
-    {
-        var cardType = cardTypes[this.hand[this.cardPlayState.handCardId]];
-        if (cardType === "GUARD")
-        {
-            this.cardPlayState.target = targetId;
-            this.cardPlayState.state = "GUESS";
-            this.setupGame();
-        }
-        else
-        {
-            this.sendPlayCard(this.cardPlayState.handCardId, targetId);
-        }
+        this.delayUiUpdates = true; // delay any UI updates until the page has changed to interaction...
     }
 
-    pickGuess(guess)
-    {
-    }
-
-    playBack()
-    {
-        if (this.cardPlayState.state === "PLAYED")
-        {
-            this.cardPlayState.target = null;
-            this.cardPlayState.state = "TURN";
-            this.setupGame();
-        }
-        else if (this.cardPlayState.state = "GUESS")
-        {
-            this.cardPlayState.state = "PLAYED";
-            this.setupGame();
-        }
-    }
-    */
     gotFullState(data : any)
     {
         if (data.playerId !== undefined)
@@ -493,11 +467,14 @@ class ClientApp
         }
         else if (data.gamestate === "PLAYING")
         {
-            this.covertHandNumbersToCards(data.hand || []);
+            this.handIds = data.hand || [];
+            this.hand = this.covertNumbersToCards(data.hand || []);
             this.turnId = data.turn;
-            var prevHadInteraction = this.hasInteraction;
-            this.hasInteraction = data.interaction.state !== undefined;
-            if (this.hasInteraction)
+            if (data.interaction.state === undefined)
+            {
+                this.interaction.status = null;
+            }
+            else
             {
                 this.interaction = {
                     playedCard: getCardType(data.interaction.card),
@@ -510,70 +487,78 @@ class ClientApp
                     revealedCard: getCardType(data.interaction.revealedCard),
                     discard: getCardType(data.interaction.discard),
                     swappedFor: getCardType(data.interaction.swappedFor),
+                    swappedForCardId: data.interaction.swappedFor,
                     prevCard: getCardType(data.interaction.prevCard),
+
+                    // round end state
+                    hiddenCard: getCardType(data.interaction.hiddenCard),
+                    finalCards: this.covertNumbersToCards(data.interaction.finalCards || []),
+                    winnerIds: data.interaction.roundWinners
                 };
             }
             this.updatePlayerDetails(data);
-
-            if (this.hasInteraction && !prevHadInteraction)
-            {
-                this.uiEventHandler.triggerEvent("redirect", "/tabs/interaction");
-            }
         }
     }
 
-    covertHandNumbersToCards(data : number[])
+    covertNumbersToCards(data : number[]) : CardType[]
     {
-        this.hand = [];
+        var result : CardType[] = [];
         var i;
         for (i = 0; i < data.length; i += 1)
         {
-            this.hand.push(getCardType(data[i]));
+            result.push(getCardType(data[i]));
         }
+        return result;
     }
 
     discard(data : any)
     {
         var playerDetails = this.playerDetails[data.playerId];
-        if (data.playerId === this.playerId)
+        var discardCard : CardType = getCardType(data.card);
+        if (data.playerId === this.playerId && !data.played)
         {
             var i;
-            for (i = 0; i < this.hand.length; i += 1)
+            for (i = 0; i < this.handIds.length; i += 1)
             {
-                if (data.card === this.hand[i])
+                if (data.card === this.handIds[i])
                 {
-                    playerDetails.discarded.push(data.card);
+                    playerDetails.discarded.push(discardCard);
                     this.hand.splice(i, 1);
+                    this.handIds.splice(i, 1);
                 }
             }
         }
         else
         {
-            playerDetails.discarded.push(data.card);
+            playerDetails.discarded.push(discardCard);
         }
     }
 
     nextTurn(data : any)
     {
         this.turnId = data.turn;
-        this.hasInteraction = false;
+        this.interaction.status = null;
+        // clear the SAFE state
+        this.playerDetails[this.turnId].state = "ALIVE";
     }
 
-    addCard(card : CardType)
+    addCard(cardId : number)
     {
         var i;
-        for (i = 0; i < this.hand.length; i += 1)
+        for (i = 0; i < this.handIds.length; i += 1)
         {
-            if (card === this.hand[i])
+            if (cardId === this.handIds[i])
             {
                 return;
             }
         }
-        this.hand.push(card);
+        this.hand.push(getCardType(cardId));
+        this.handIds.push(cardId);
     }
 
-    roundComplete()
+    roundComplete(data : any)
     {
+        
     }
 
     /*
@@ -587,46 +572,31 @@ class ClientApp
         }
         return this.hand[0];
     }
-
-    anyValidTargets()
-    {
-        var i;
-        for (i = 0; i < this.playerStates.length; i += 1)
-        {
-            if (i !== this.turnId && this.playerStates[i].state === "ALIVE")
-            {
-                return true;
-            }
-        }
-        return false;
-    }
     */
     interactionStep()
     {
+        if (this.interaction.status === "CONTINUE" ||
+            this.interaction.status === "ROUND_COMPLETE")
+        {
+            // wait for the page to change before updating any UI
+            this.delayUiUpdates = true;
+        }
         this.send({"cmd": this.interaction.status});
     }
 
     reveal()
     {
-        if (this.interaction.playedCard === "KING" && this.interaction.swappedFor !== undefined)
+        if (this.interaction.playedCard === "KING" && this.interaction.swappedForCardId !== undefined)
         {
-            this.hand[0] = this.interaction.swappedFor;
-        }
-    }
-    
-    endTurn()
-    {
-        this.hasInteraction = false;
-    }
-    
-    updateInteraction()
-    {
-        if (this.interaction.status === "ROUND_COMPLETE")
-        {
-            this.roundComplete();
-            return;
+            this.hand[0] = this.interaction.swappedFor!;
+            this.handIds[0] = this.interaction.swappedForCardId!;
         }
     }
 }
 
 export let clientApp = new ClientApp();
+
+declare global {
+    interface Window { expose: any; }
+}
+window.expose = { clientApp: clientApp };

@@ -106,11 +106,14 @@ function PlayCard(props : {playerDetails : PlayerDetails[], playerId : number, h
     }
     else if (playState === "PICK_TARGET")
     {
-        var anyValidTargets = true;
+        var anyValidTargets = false;
         var targetList = props.playerDetails.map(function(playerDetails, index)
             {
-                anyValidTargets = anyValidTargets && playerDetails.state === "ALIVE";
-                return ((props.playerId === index) ? null :
+                if (props.playerId === index && props.card !== "PRINCE")
+                    return null;
+
+                anyValidTargets = anyValidTargets || playerDetails.state === "ALIVE";
+                return (
                     <IonItem key={playerDetails.name}>
                         <div className="fullBox">
                             <div className="playerTopLine">
@@ -218,20 +221,37 @@ function CardPage(props: {handId: number})
     const [discardedCardTotals, setDiscardedCardTotals] = useState<number[]>(clientApp.getUiProperty("discardedCardTotals"));
 
     useEffect(() => {
-        var listeners = new LVListenerList();
+        var listeners = new LVListenerList("card");
         listeners.onPropertyChange("hand", function(value : CardType[]) { setHand(value); });
         listeners.onPropertyChange("playerDetails", function(value : PlayerDetails[]) { setPlayerDetails(value); });
         listeners.onPropertyChange("discardedCardTotals", function(value : number[]) { setDiscardedCardTotals(value); });
         listeners.onPropertyChange("playerId", function(value : number) { setPlayerId(value); });
         listeners.onPropertyChange("turnId", function(value : number) { setTurnId(value); });
         return clientApp.effectListeners(listeners);
-    });
+    }, []);
 
     var handId = props.handId;
 
+    var content;
+    var title;
     if (handId >= hand.length)
     {
-        return null;
+        title = <>No card</>;
+        content = null;
+    }
+    else
+    {
+        title = <CardName card={hand[handId]}></CardName>;
+        content = (
+        <>
+            <LVCard>
+            <CardImgAndDetails card={hand[handId]}/>
+            </LVCard>
+            {
+                turnId !== playerId ? null :
+                <PlayCard playerDetails={playerDetails} playerId={playerId} handId={handId} card={hand[handId]} otherCard={hand[handId === 0 ? 1 : 0]} discardedCardTotals={discardedCardTotals}></PlayCard>
+            }
+        </>);
     }
 
     return (
@@ -242,16 +262,10 @@ function CardPage(props: {handId: number})
                     <IonButtons slot="start">
                         <IonMenuButton />
                     </IonButtons>
-                    <IonTitle><CardName card={hand[handId]}></CardName></IonTitle>
+                    <IonTitle>{title}</IonTitle>
                 </IonToolbar>
             </IonHeader>
-            <LVCard>
-                <CardImgAndDetails card={hand[handId]}/>
-            </LVCard>
-            {
-                turnId !== playerId ? null :
-                <PlayCard playerDetails={playerDetails} playerId={playerId} handId={handId} card={hand[handId]} otherCard={hand[handId === 0 ? 1 : 0]} discardedCardTotals={discardedCardTotals}></PlayCard>
-            }
+            {content}
         </IonContent>
     </IonPage>
     );

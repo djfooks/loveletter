@@ -53,12 +53,12 @@ const PickCharacterPage: React.FC = () => {
     const [pickDisabled, setPickDisabled] = useState<boolean>(false);
 
     useEffect(() => {
-        var listeners = new LVListenerList();
+        var listeners = new LVListenerList("pickCharacter");
         listeners.onPropertyChange("pickedCharacterId", function(value) { setPickedCharacterId(value); setSelectedCharacterId(value); });
-        listeners.onPropertyChange("alreadyPickedIds", function(value) { setAlreadyPickedIds(value); });
+        listeners.onPropertyChange("alreadyPickedIds", (v : number[]) => setAlreadyPickedIds(v));
         listeners.onEvent("pickedCharacterInUse", function () { setPickDisabled(false); });
         return clientApp.effectListeners(listeners);
-    });
+    }, []);
 
     function handlePickClick()
     {

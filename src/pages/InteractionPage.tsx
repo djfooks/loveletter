@@ -1,6 +1,5 @@
 import { IonButton, IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, IonToolbar } from '@ionic/react';
 import React, { useEffect, useState } from 'react';
-import { Redirect } from 'react-router-dom';
 import { CardType } from '../cards';
 import { clientApp } from '../ClientApp';
 import { CardImgAndDetails, CardName, DotDotDot, Interaction, InteractionCard, LVCard, PlayerCharacterName, PlayerDetails, PlayerState } from '../Shared';
@@ -45,30 +44,24 @@ function SecretReveal(props : { playerDetails : PlayerDetails, card : CardType }
     );
 }
 
-const InteractionPage: React.FC = () => {
-
+function InteractionContent()
+{
     const [playerDetails, setPlayerDetails] = useState<PlayerDetails[]>(clientApp.getUiProperty("playerDetails"));
     const [playerId, setPlayerId] = useState<number>(clientApp.getUiProperty("playerId"));
     const [turnId, setTurnId] = useState<number>(clientApp.getUiProperty("turnId"));
     const [interaction, setInteraction] = useState<Interaction>(clientApp.getUiProperty("interaction"));
-    const [hasInteraction, setHasInteraction] = useState<boolean>(clientApp.getUiProperty("hasInteraction"));
 
     useEffect(() => {
-        var listeners = new LVListenerList();
+        var listeners = new LVListenerList("interaction");
         listeners.onPropertyChange("playerDetails", function(value : PlayerDetails[]) { setPlayerDetails(value); });
         listeners.onPropertyChange("playerId", function(value : number) { setPlayerId(value); });
         listeners.onPropertyChange("turnId", function(value : number) { setTurnId(value); });
         listeners.onPropertyChange("interaction", function(value : Interaction) { setInteraction(value); });
-        listeners.onPropertyChange("hasInteraction", function(value : boolean) { setHasInteraction(value); });
         return clientApp.effectListeners(listeners);
-    });
+    }, []);
 
-    if (!hasInteraction)
-    {
-        return (
-            <Redirect to="/tabs/game"></Redirect>
-        );
-    }
+    if (interaction.status !== "REVEAL" && interaction.status !== "CONTINUE")
+        return <InteractionCard>Waiting for turn</InteractionCard>;
 
     var turnPlayerDetails = playerDetails[turnId];
     var targetPlayerDetails : PlayerDetails | null = null;
@@ -300,12 +293,12 @@ const InteractionPage: React.FC = () => {
                     <React.Fragment>
                         <SecretReveal playerDetails={turnPlayerDetails} card={kingTurnPlayerCard} />
                         <SecretReveal playerDetails={targetPlayerDetails!} card={kingTargetPlayerCard} />
-                        <LVCard>
+                        <InteractionCard>
                             <PlayerCharacterName playerDetails={turnPlayerDetails} /> now has <span className="hspacer"></span><CardName card={kingTargetPlayerCard}/>
-                        </LVCard>
-                        <LVCard>
+                        </InteractionCard>
+                        <InteractionCard>
                             <PlayerCharacterName playerDetails={targetPlayerDetails!} /> now has <span className="hspacer"></span><CardName card={kingTurnPlayerCard}/>
-                        </LVCard>
+                        </InteractionCard>
                     </React.Fragment>
                 );
             }
@@ -326,6 +319,29 @@ const InteractionPage: React.FC = () => {
     }
 
     return (
+        <>
+            <LVCard>
+                <div className="interactionText">
+                    <PlayerCharacterName playerDetails={turnPlayerDetails} /> played
+                </div>
+            </LVCard>
+
+            <LVCard>
+                <CardImgAndDetails card={interaction.playedCard} />
+            </LVCard>
+
+            {interactionBlock}
+            {otherDetails}
+            {endTurn}
+
+            <div className="scrollHack"></div>
+        </>
+    );
+}
+
+
+const InteractionPage: React.FC = () => {
+    return (
         <IonPage>
             <IonContent fullscreen>
                 <IonHeader>
@@ -336,22 +352,7 @@ const InteractionPage: React.FC = () => {
                         <IonTitle>Action</IonTitle>
                     </IonToolbar>
                 </IonHeader>
-                
-                <LVCard>
-                    <div className="interactionText">
-                        <PlayerCharacterName playerDetails={turnPlayerDetails} /> played
-                    </div>
-                </LVCard>
-
-                <LVCard>
-                    <CardImgAndDetails card={interaction.playedCard} />
-                </LVCard>
-
-                {interactionBlock}
-                {otherDetails}
-                {endTurn}
-
-                <div className="scrollHack"></div>
+                <InteractionContent />
             </IonContent>
         </IonPage>
     );

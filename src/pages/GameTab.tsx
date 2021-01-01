@@ -20,19 +20,25 @@ import InteractionPage from './InteractionPage';
 const GameTabPage: React.FC = () => {
 
     const [hand, setHand] = useState<CardType[]>(clientApp.getUiProperty("hand"));
-    const [hasInteraction, setHasInteraction] = useState<boolean>(clientApp.getUiProperty("hasInteraction"));
+    //const [hasInteraction, setHasInteraction] = useState<boolean>(clientApp.getUiProperty("hasInteraction"));
     
     useEffect(() => {
-        var listeners = new LVListenerList();
+        var listeners = new LVListenerList("game");
         listeners.onPropertyChange("hand", function(value) { setHand(value); });
-        listeners.onPropertyChange("hasInteraction", function(value : boolean) { setHasInteraction(value); });
+        //listeners.onPropertyChange("hasInteraction", function(value : boolean) { setHasInteraction(value); });
         return clientApp.effectListeners(listeners);
-    });
+    }, []);
+
+    function handleClick()
+    {
+        window.alert("yay");
+    }
 
     return (
     <IonTabs>
         <IonRouterOutlet>
             <Redirect exact path="/tabs" to="/tabs/game" />
+            <Redirect exact path="/" to="/tabs/game" />
             <Route path="/tabs/game" render={() => <GamePage />} exact />
             <Route path="/tabs/card/0" render={() => <CardPage handId={0} />} exact />
             <Route path="/tabs/card/1" render={() => <CardPage handId={1} />} exact />
@@ -40,7 +46,6 @@ const GameTabPage: React.FC = () => {
         </IonRouterOutlet>
         <IonTabBar slot="bottom">
             {
-                !hasInteraction ? null :
                 <IonTabButton tab="interaction" href="/tabs/interaction">
                     <IonIcon icon={caretForwardCircleOutline} />
                     <IonLabel>Action</IonLabel>
@@ -51,15 +56,17 @@ const GameTabPage: React.FC = () => {
                 <IonLabel>Players</IonLabel>
             </IonTabButton>
             {
-                hand.length === 0 ? null :
                 <IonTabButton tab="card0" href="/tabs/card/0">
                     <IonIcon icon={tabletPortraitOutline} />
-                    <CardName card={hand[0]}></CardName>
+                    {
+                        hand.length === 0 ? "None" :
+                        <CardName card={hand[0]}></CardName>
+                    }
                 </IonTabButton>
             }
             {
-                hand.length <= 1 ? null :
-                <IonTabButton tab="card1" href="/tabs/card/1">
+                hand.length <= 1 ? "None" :
+                <IonTabButton tab="card1" href="/tabs/card/1" onClick={handleClick}>
                     <IonIcon icon={tabletPortraitOutline} />
                     <CardName card={hand[1]}></CardName>
                 </IonTabButton>

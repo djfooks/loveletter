@@ -78,12 +78,13 @@ export class PlayerLine extends React.Component<PlayerLineProps, PlayerLineState
                         <PlayerState status={this.props.playerDetails.state} />
                     </span>
                     <span className="playerTopLineRight">
+                        <span className="middlerHack"></span>
                         <Tokens tokens={this.props.playerDetails.tokens} />
                         <span className="gemPadding"></span>
                         {
                             this.props.playerDetails.discarded.length > 0 ?
                                 <IonIcon icon={this.state.dropdownOpen ? chevronUpOutline : chevronDownOutline} className="verticalAlignMiddle"></IonIcon>
-                                : null
+                                : <span className="dropdownHiddenPadding"></span>
                         }
                     </span>
                 </div>
@@ -143,7 +144,7 @@ function StartGameCard(props : {gameState: GameState, playerId: number})
     }
 }
 
-function TopLine(props : {discardedCardTotals : number[]})
+function TopLine(props : {discardedCardTotals : number[], playerDetails: PlayerDetails[]})
 {
     var i;
     var totalDiscards = 0;
@@ -151,7 +152,16 @@ function TopLine(props : {discardedCardTotals : number[]})
     {
         totalDiscards += props.discardedCardTotals[i];
     }
-    var cardsLeft = totalNumberOfCards - 1 - totalDiscards;
+    // -1 for hidden card, -1 for active player having 2 cards
+    var cardsLeft = totalNumberOfCards - 2 - totalDiscards;
+    for (i = 0; i < props.playerDetails.length; i += 1)
+    {
+        if (props.playerDetails[i].state !== "DEAD")
+        {
+            cardsLeft -= 1;
+        }
+    }
+
     if (cardsLeft < 5)
     {
         return (
@@ -176,13 +186,13 @@ const GamePage: React.FC = () => {
     const [playerId, setPlayerId] = useState<number>(clientApp.getUiProperty("playerId"));
     
     useEffect(() => {
-        var listeners = new LVListenerList();
+        var listeners = new LVListenerList("game");
         listeners.onPropertyChange("playerDetails", function(value : PlayerDetails[]) { setPlayerDetails(value); });
         listeners.onPropertyChange("discardedCardTotals", function(value : number[]) { setDiscardedCardTotals(value); });
         listeners.onPropertyChange("gameState", function(value : GameState) { setGameState(value); });
         listeners.onPropertyChange("playerId", function(value : number) { setPlayerId(value); });
         return clientApp.effectListeners(listeners);
-    });
+    }, []);
 
     return (
     <IonPage id="game">
@@ -195,7 +205,7 @@ const GamePage: React.FC = () => {
                     <IonTitle></IonTitle>
                 </IonToolbar>
             </IonHeader>
-            <TopLine discardedCardTotals={discardedCardTotals} />
+            <TopLine discardedCardTotals={discardedCardTotals} playerDetails={playerDetails} />
             <PlayersList playerDetails={playerDetails} />
             <StartGameCard gameState={gameState} playerId={playerId} />
         </IonContent>

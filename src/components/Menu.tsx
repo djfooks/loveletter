@@ -13,6 +13,7 @@ import { caretForwardCircleOutline, codeOutline, exitOutline, helpCircleOutline 
 import './Menu.css';
 import { LVListenerList } from '../UIListeners';
 import { clientApp } from '../ClientApp';
+import { PlayerCharacter, PlayerDetails } from '../Shared';
 
 interface AppPage {
     url: string;
@@ -47,14 +48,19 @@ const Menu: React.FC = () => {
     
     const [loggedIn, setLoggedIn] = useState<boolean>(clientApp.getUiProperty("loggedIn"));
     const [room, setRoom] = useState<string>(clientApp.getUiProperty("roomcode"));
+    const [playerDetails, setPlayerDetails] = useState<PlayerDetails[]>(clientApp.getUiProperty("playerDetails"));
+    const [playerId, setPlayerId] = useState<number>(clientApp.getUiProperty("playerId"));
 
     useEffect(() => {
-        var listeners = new LVListenerList();
+        var listeners = new LVListenerList("menu");
         listeners.onPropertyChange("roomcode", (value : string) => { setRoom(value); });
         listeners.onPropertyChange("loggedIn", function (v : boolean) { setLoggedIn(v); });
+        listeners.onPropertyChange("playerDetails", function (v : PlayerDetails[]) { setPlayerDetails(v); });
+        listeners.onPropertyChange("playerId", function (v : number) { setPlayerId(v); });
         listeners.onEvent("redirect", function(v : string) { history.push(v); });
         return clientApp.effectListeners(listeners);
-    });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     if (!loggedIn)
     {
@@ -72,6 +78,14 @@ const Menu: React.FC = () => {
         <IonMenu contentId="main" type="overlay">
             <IonContent>
                 <IonList>
+                    {
+                        playerDetails[playerId] === undefined ? null :
+                        <IonItem lines="none" detail={false}>
+                            <div className="menuCharacter">
+                                <PlayerCharacter playerDetails={playerDetails[playerId]}></PlayerCharacter>
+                            </div>
+                        </IonItem>
+                    }
                     <IonItem lines="none" detail={false}>
                         <IonIcon slot="start" icon={codeOutline} />
                         <IonLabel>Room: {room}</IonLabel>

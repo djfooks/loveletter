@@ -45,7 +45,7 @@ var cardDetailsMapExport : CardDetailsMap = {
         "action": "You cannot be targeted until your next turn." }),
     "PRINCE":   new CardDetailsMapValue({ "value": 5, "name": "Prince", "numInDeck": 2,
         "shortAction": "Pick any player to discard their hand and draw a new one.",
-        "action": "Pick any player (including youself) to discard their hand and draw a new one. If they discard the Princess they are eliminated." }),
+        "action": "Pick any player (including yourself) to discard their hand and draw a new one. If they discard the Princess they are eliminated." }),
     "KING":     new CardDetailsMapValue({ "value": 6, "name": "King", "numInDeck": 1,
         "shortAction": "Pick another player and trade hands with them.",
         "action": "Pick another player and trade hands with them." }),

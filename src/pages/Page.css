@@ -30,6 +30,26 @@ ion-card {
     vertical-align: middle;
 }
 
+.roundEndPlayerLine
+{
+    width: 100%;
+    height: 64px;
+    vertical-align: middle;
+}
+
+.middlerHack
+{
+    display: inline-block;
+    height: 64px;
+    vertical-align: middle;
+}
+
+.roundEndPlayerStatus
+{
+    vertical-align: middle;
+    float: right;
+}
+
 .cardOptionLine
 {
     width: 100%;
@@ -96,6 +116,14 @@ ion-card {
 .interactionText
 {   
     text-align: center;
+}
+
+.menuCharacter
+{
+    margin-bottom: 5%;
+    display:block;
+    margin-left:auto;
+    margin-right:auto;
 }
 
 .characterGridCell
@@ -166,6 +194,11 @@ ion-card {
 }
 
 .gemPadding
+{
+    margin-right: 16px;
+}
+
+.dropdownHiddenPadding
 {
     margin-right: 16px;
 }

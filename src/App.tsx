@@ -27,6 +27,7 @@ import '@ionic/react/css/display.css';
 
 /* Theme variables */
 import './theme/variables.css';
+import RoundCompletePage from './pages/RoundComplete';
 
 const App: React.FC = () => {
 
@@ -40,6 +41,7 @@ const App: React.FC = () => {
             <Route path="/page/Login" component={LoginPage} exact />
             <Route path="/page/PickCharacter" component={PickCharacterPage} exact />
             <Route path="/page/Help" component={HelpPage} exact />
+            <Route path="/page/RoundComplete" component={RoundCompletePage} exact />
             <Route path="/page/Test" component={InputExamples} exact />
             <Redirect from="/" to="/page/Login" exact />
           </IonRouterOutlet>

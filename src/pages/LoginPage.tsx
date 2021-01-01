@@ -13,7 +13,7 @@ export const LoginPage: React.FC = () => {
     const [showToast, setShowToast] = useState<boolean>(false);
 
     useEffect(() => {
-        var listeners = new LVListenerList();
+        var listeners = new LVListenerList("login");
         listeners.onPropertyChange("roomcode", (value : string) => { setRoom(value); });
         listeners.onEvent("connectionError", function()
         {
@@ -27,7 +27,7 @@ export const LoginPage: React.FC = () => {
             setCreateRoomEnable(true);
         });
         return clientApp.effectListeners(listeners);
-    });
+    }, []);
 
     function joinRoom()
     {

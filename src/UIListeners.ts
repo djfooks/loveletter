@@ -8,7 +8,6 @@ export type LVUIProperty =
     | "playerId"
     | "turnId"
     | "interaction"
-    | "hasInteraction"
     | "gameState"
     | "loggedIn"
     | "username"
@@ -30,13 +29,17 @@ export class LVListener
     id : number;
     callback : UIChangeCallback;
     listenerType : LVListenerType;
+    tag : string;
+    prevValueStr : string;
 
-    constructor(listenerType: LVListenerType, name : string, callback : UIChangeCallback)
+    constructor(listenerType: LVListenerType, tag : string, name : string, callback : UIChangeCallback)
     {
         this.listenerType = listenerType;
+        this.tag = tag;
         this.name = name;
         this.callback = callback;
         this.id = -1;
+        this.prevValueStr = "";
     }
 }
 
@@ -99,13 +102,20 @@ export class EventHandler
         }
     }
 
-    propertyChange(property : LVUIProperty, value : any)
+    propertyChange(property : LVUIProperty, valueStr : string, value : any, tag : string)
     {
         var p = this.properties[property];
         var i : number;
         for (i = 0; i < p.length; i += 1)
         {
-            p[i].callback(value);
+            if (tag.length === 0 || p[i].tag === tag)
+            {
+                if (p[i].prevValueStr !== valueStr)
+                {
+                    p[i].prevValueStr = valueStr;
+                    p[i].callback(value);
+                }
+            }
         }
     }
     
@@ -133,18 +143,33 @@ export class EventHandler
 export class LVListenerList
 {
     list : LVListener[];
+    tag : string;
 
-    constructor()
+    constructor(tag : string)
     {
         this.list = [];
+        this.tag = tag;
+    }
+
+    setProperties(values : any)
+    {
+        var i;
+        for (i = 0; i < this.list.length; i += 1)
+        {
+            var item = this.list[i];
+            if (item.listenerType === "PROPERTY")
+            {
+                item.callback(values[item.name]);
+            }
+        }
     }
 
     onPropertyChange(name : LVUIProperty, callback : UIChangeCallback)
     {
-        this.list.push(new LVListener("PROPERTY", name, callback));
+        this.list.push(new LVListener("PROPERTY", this.tag, name, callback));
     }
     onEvent(name : LVUIEvent, callback : UIChangeCallback)
     {
-        this.list.push(new LVListener("EVENT", name, callback));
+        this.list.push(new LVListener("EVENT", this.tag, name, callback));
     }
 }
