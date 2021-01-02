@@ -15,6 +15,7 @@ class ClientApp
     playerDetails: PlayerDetails[];
     gameState: GameState;
     loggedIn: boolean;
+    roomSeed: number;
 
     prevUIData: any;
 
@@ -25,11 +26,13 @@ class ClientApp
 
     uiEventHandler : EventHandler;
     delayUiUpdates : boolean;
+    gotoTab : string | null;
 
     constructor()
     {
         this.uiEventHandler = new EventHandler();
         this.delayUiUpdates = false;
+        this.gotoTab = null;
 
         this.pickedCharacterId = -1;
         this.alreadyPickedIds = [];
@@ -42,10 +45,12 @@ class ClientApp
         this.gameState = "LOGIN";
         this.loggedIn = false;
         this.interaction = {
+            playerId: -1,
             targetId: -1,
             playedCard: "GUARD",
             status: null
         };
+        this.roomSeed = 0;
         
         var localStorage = window.localStorage;
 
@@ -98,6 +103,7 @@ class ClientApp
             username: this.username,
             roomcode: this.roomcode,
             pickedCharacterId: this.pickedCharacterId,
+            roomSeed: this.roomSeed,
         };
         function addProperty(prop : LVUIProperty, cb : any)
         {
@@ -148,6 +154,16 @@ class ClientApp
         localStorage.setItem('name', name);
         localStorage.setItem('room', this.roomcode);
         this.websocket = new WebSocket("wss://u72xrovjcj.execute-api.eu-west-2.amazonaws.com/test?room=" + this.roomcode + "&key=" + this.key + "&name=" + this.username);
+
+        function getAlphaIndex(str : string, index : number)
+        {
+            return str.charCodeAt(0) - "A".charCodeAt(0);
+        }
+
+        this.roomSeed = 41 * (getAlphaIndex(this.roomcode, 0) +
+                            (getAlphaIndex(this.roomcode, 1) * 26 +
+                            (getAlphaIndex(this.roomcode, 2) * 26 +
+                            (getAlphaIndex(this.roomcode, 3) * 26))));
 
         var that = this;
         this.websocket.onopen = function (/*event*/) {
@@ -211,7 +227,7 @@ class ClientApp
             playerDetails = this.playerDetails[i];
             if (i === this.playerId)
                 continue;
-            if (playerDetails.characterId !== undefined)
+            if (playerDetails.characterId !== -1)
                 this.alreadyPickedIds.push(playerDetails.characterId);
         }
         return this.alreadyPickedIds;
@@ -220,6 +236,11 @@ class ClientApp
     pickCharacter(selectedCharacterId : number)
     {
         this.send({ "cmd": "PICK_CHARACTER", "characterId": selectedCharacterId });
+    }
+
+    clearPickedCharacter()
+    {
+        this.send({ "cmd": "CLEAR_PICKED_CHARACTER" });
     }
 
     getCardDiscardedCountArray()
@@ -288,8 +309,11 @@ class ClientApp
                 if (data.playerId === this.playerId)
                 {
                     this.pickedCharacterId = data.characterId;
-                    this.uiEventHandler.triggerEvent("redirect", "/tabs");
+                    this.uiEventHandler.triggerEvent("redirect", "/tabs/game");
                 }
+            break;
+            case "CLEAR_CHARACTER_PICK":
+                this.playerDetails[data.playerId].characterId = -1;
             break;
             case "START_CARD":
                 this.playerId = data.playerId;
@@ -306,8 +330,8 @@ class ClientApp
                 {
                     this.playerDetails[data.index] = {
                         name: data.name,
-                        characterId: data.characterId,
-                        tokens: [],
+                        characterId: (data.characterId === undefined || data.characterId === null) ? -1 : data.characterId,
+                        wins: 0,
                         state: "ALIVE",
                         discarded: []
                     };
@@ -316,7 +340,7 @@ class ClientApp
                 {
                     var joinedPlayer = this.playerDetails[data.index];
                     joinedPlayer.name = data.name;
-                    joinedPlayer.characterId = data.characterId;
+                    joinedPlayer.characterId = (data.characterId === undefined || data.characterId === null) ? -1 : data.characterId;
                 }
             break;
             case "START_GAME":
@@ -345,7 +369,7 @@ class ClientApp
 
         if (newInteractionStatus !== prevInteractionStatus)
         {
-            var gotoTab : String | undefined;
+            var gotoTab : string | undefined;
             if (this.interaction.status !== null)
             {
                 if (this.interaction.status === "ROUND_COMPLETE")
@@ -371,14 +395,16 @@ class ClientApp
                 this.delayUiUpdates = true; // delay any UI updates until the page has changed...
 
                 var that = this;
+                this.gotoTab = gotoTab;
                 setTimeout(function ()
                 {
                     // once the page UI has updated switch to it
-                    that.uiEventHandler.triggerEvent("redirect", gotoTab);
+                    that.uiEventHandler.triggerEvent("redirect", that.gotoTab);
                     var intervalId = setInterval(function ()
                     {
-                        if (window.location.pathname === gotoTab)
+                        if (window.location.pathname === that.gotoTab)
                         {
+                            that.gotoTab = null;
                             that.delayUiUpdates = false;
                             that.updateUI();
                             clearInterval(intervalId!);
@@ -400,8 +426,8 @@ class ClientApp
             var player = data.players[i];
             var playerDetails : PlayerDetails = {
                 name: player.name,
-                characterId: player.characterId,
-                tokens: [],
+                characterId: (player.characterId === null || player.characterId === undefined) ? -1 : player.characterId,
+                wins: 0,
                 state: "ALIVE",
                 discarded: []
             };
@@ -409,11 +435,8 @@ class ClientApp
             if (data.playerStates)
             {
                 var playerState = data.playerStates[i];
+                playerDetails.wins = playerState.wins;
                 var j;
-                for (j = 0; j < playerState.wins; j += 1)
-                {
-                    playerDetails.tokens.push({gem: 1});
-                }
                 for (j = 0; j < playerState.played.length; j += 1)
                 {
                     playerDetails.discarded.push(getCardType(playerState.played[j]));
@@ -423,7 +446,7 @@ class ClientApp
 
             if (this.playerId === i)
             {
-                this.pickedCharacterId = player.characterId;
+                this.pickedCharacterId = (player.characterId === null || player.characterId === undefined) ? -1 : player.characterId;
             }
 
             this.playerDetails.push(playerDetails);
@@ -477,6 +500,7 @@ class ClientApp
             else
             {
                 this.interaction = {
+                    playerId: data.interaction.playerId,
                     playedCard: getCardType(data.interaction.card),
                     otherCard: getCardType(data.interaction.otherCard),
                     status: data.interaction.state,
@@ -493,7 +517,8 @@ class ClientApp
                     // round end state
                     hiddenCard: getCardType(data.interaction.hiddenCard),
                     finalCards: this.covertNumbersToCards(data.interaction.finalCards || []),
-                    winnerIds: data.interaction.roundWinners
+                    winnerIds: data.interaction.roundWinners,
+                    gameWinner: data.interaction.gameWinner
                 };
             }
             this.updatePlayerDetails(data);

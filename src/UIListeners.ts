@@ -13,7 +13,8 @@ export type LVUIProperty =
     | "username"
     | "roomcode"
     | "pickedCharacterId"
-    | "alreadyPickedIds";
+    | "alreadyPickedIds"
+    | "roomSeed";
 
 export type LVUIEvent =
     "leaveRoom"

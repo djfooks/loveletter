@@ -72,7 +72,7 @@ function InteractionContent()
         }
     }
 
-    var turnPlayerDetails = playerDetails[turnId];
+    var turnPlayerDetails = playerDetails[interaction.playerId];
     var targetPlayerDetails : PlayerDetails | null = null;
     var hasTarget : boolean = interaction.targetId !== undefined && interaction.targetId !== -1;
     if (hasTarget)
@@ -157,7 +157,7 @@ function InteractionContent()
     }
     else if (interaction.status === "CONTINUE")
     {
-        if (turnId === playerId)
+        if (interaction.playerId === playerId)
         {
             endTurn = (
                 <InteractionCard>
@@ -201,7 +201,7 @@ function InteractionContent()
         }
         else if (interaction.playedCard === "PRIEST" && hasTarget)
         {
-            if (turnId === playerId || interaction.targetId === playerId)
+            if (interaction.playerId === playerId || interaction.targetId === playerId)
             {
                 otherDetails = (
                     <React.Fragment>
@@ -222,11 +222,11 @@ function InteractionContent()
         }
         else if (interaction.playedCard === "BARON" && hasTarget)
         {
-            var winner : number = interaction.loserId === turnId ? interaction.targetId! : turnId;
+            var winner : number = interaction.loserId === interaction.playerId ? interaction.targetId! : interaction.playerId;
             var winnerPlayerDetails = playerDetails[winner];
             var loserPlayerDetails = playerDetails[interaction.loserId!];
 
-            if (turnId === playerId || interaction.targetId === playerId)
+            if (interaction.playerId === playerId || interaction.targetId === playerId)
             {
                 if (interaction.result === "TIE")
                 {
@@ -242,7 +242,7 @@ function InteractionContent()
                 }
                 else
                 {
-                    var baronTurnPlayerCard : CardType = playerId === turnId ? interaction.otherCard! : interaction.revealedCard!;
+                    var baronTurnPlayerCard : CardType = playerId === interaction.playerId ? interaction.otherCard! : interaction.revealedCard!;
                     var baronTargetPlayerCard : CardType = playerId === interaction.targetId ? interaction.otherCard! : interaction.revealedCard!;
                     otherDetails = (
                         <React.Fragment>
@@ -294,9 +294,9 @@ function InteractionContent()
         }
         else if (interaction.playedCard === "KING" && hasTarget)
         {
-            if (turnId === playerId || interaction.targetId === playerId)
+            if (interaction.playerId === playerId || interaction.targetId === playerId)
             {
-                var kingTurnPlayerCard : CardType = playerId === turnId ? interaction.otherCard! : interaction.swappedFor!;
+                var kingTurnPlayerCard : CardType = playerId === interaction.playerId ? interaction.otherCard! : interaction.swappedFor!;
                 var kingTargetPlayerCard : CardType = playerId === interaction.targetId ? interaction.prevCard! : interaction.swappedFor!;
                 otherDetails = (
                     <React.Fragment>

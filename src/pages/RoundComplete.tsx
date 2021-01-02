@@ -42,8 +42,17 @@ function RoundEndPlayersList(props : {playerDetails : PlayerDetails[], finalCard
     );
 }
 
-function WinnersCards(props : {playerDetails: PlayerDetails[], winnerIds: number[], playerId: number})
+function WinnersCards(props : {playerDetails: PlayerDetails[], winnerIds: number[], playerId: number, gameWinner?: number})
 {
+    if (props.gameWinner !== undefined)
+    {
+        return (
+            <InteractionCard>
+                <PlayerCharacterName playerDetails={props.playerDetails[props.gameWinner]} /> wins the game!
+            </InteractionCard>
+        );
+    }
+
     function handleNewRound()
     {
         clientApp.interactionStep();
@@ -102,7 +111,7 @@ const RoundCompletePage: React.FC = () => {
                                 <RoundEndPlayersList finalCards={interaction.finalCards || []} playerDetails={playerDetails}/>
                             </IonList>
                         </InteractionCard>
-                        <WinnersCards playerId={playerId} playerDetails={playerDetails} winnerIds={interaction.winnerIds || []}/>
+                        <WinnersCards playerId={playerId} playerDetails={playerDetails} winnerIds={interaction.winnerIds || []} gameWinner={interaction.gameWinner}/>
                     </>
                 }
             </IonContent>

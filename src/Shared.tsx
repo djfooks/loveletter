@@ -4,39 +4,36 @@ import { charactersMap } from './charactermap';
 
 export type GameState = "LOGIN" | "PLAYING";
 export type PlayerStatus = "ALIVE" | "DEAD" | "SAFE";
-export type PlayedCardTotals = number[];
-
-export interface Token
-{
-    gem: number
-}
+export type DiscardedCardTotals = number[];
 
 export interface PlayerDetails {
     name: string;
     characterId: number;
     state: PlayerStatus;
-    tokens: Token[];
+    wins: number;
     discarded: CardType[];
 }
 
 export interface Interaction {
-    playedCard : CardType;
-    status : "REVEAL" | "CONTINUE" | "ROUND_COMPLETE" | null;
-    targetId? : number;
-    guess? : CardType;
-    result? : "CORRECT_GUESS" | "TIE";
-    loserId? : number;
-    revealedCard? : CardType;
-    otherCard? : CardType;
-    discard? : CardType;
-    swappedFor? : CardType;
-    swappedForCardId? : number;
-    prevCard? : CardType;
+    playerId: number;
+    playedCard: CardType;
+    status: "REVEAL" | "CONTINUE" | "ROUND_COMPLETE" | null;
+    targetId?: number;
+    guess?: CardType;
+    result?: "CORRECT_GUESS" | "TIE";
+    loserId?: number;
+    revealedCard?: CardType;
+    otherCard?: CardType;
+    discard?: CardType;
+    swappedFor?: CardType;
+    swappedForCardId?: number;
+    prevCard?: CardType;
     
     // round end state
-    hiddenCard? : CardType;
-    finalCards? : CardType[];
-    winnerIds? : number[];
+    hiddenCard?: CardType;
+    finalCards?: CardType[];
+    winnerIds?: number[];
+    gameWinner?: number;
 }
 
 export function LVCard(props : {children: any, highlight? : boolean})
@@ -87,7 +84,7 @@ export function PlayerCharacterName(props : {playerDetails: PlayerDetails})
 export function PlayerCharacter(props : {playerDetails: PlayerDetails})
 {
     var imgPath;
-    if (props.playerDetails.characterId === null)
+    if (props.playerDetails.characterId === -1)
     {
         imgPath = "img/unknown-character.svg";
     }

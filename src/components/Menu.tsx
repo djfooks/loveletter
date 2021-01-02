@@ -9,7 +9,7 @@ import {
 
 import React, { useEffect, useState } from 'react';
 import { Redirect, useHistory, useLocation } from 'react-router-dom';
-import { caretForwardCircleOutline, codeOutline, exitOutline, helpCircleOutline } from 'ionicons/icons';
+import { caretForwardCircleOutline, codeOutline, helpCircleOutline } from 'ionicons/icons';
 import './Menu.css';
 import { LVListenerList } from '../UIListeners';
 import { clientApp } from '../ClientApp';
@@ -26,18 +26,13 @@ const loginPage = '/page/Login';
 const appPages: AppPage[] = [
     {
         title: 'Game',
-        url: '/tabs',
+        url: '/tabs/game',
         icon: caretForwardCircleOutline
     },
     {
         title: 'Help',
         url: '/page/Help',
         icon: helpCircleOutline
-    },
-    {
-        title: 'Leave Room',
-        url: loginPage,
-        icon: exitOutline
     }
 ];
 
@@ -79,7 +74,7 @@ const Menu: React.FC = () => {
             <IonContent>
                 <IonList>
                     {
-                        playerDetails[playerId] === undefined ? null :
+                        playerDetails[playerId] === undefined || playerDetails[playerId].characterId === null ? null :
                         <IonItem lines="none" detail={false}>
                             <div className="menuCharacter">
                                 <PlayerCharacter playerDetails={playerDetails[playerId]}></PlayerCharacter>
@@ -90,7 +85,7 @@ const Menu: React.FC = () => {
                         <IonIcon slot="start" icon={codeOutline} />
                         <IonLabel>Room: {room}</IonLabel>
                     </IonItem>
-                    {appPages.map((appPage, index) => {
+                    { location.pathname === "/page/PickCharacter" ? null : appPages.map((appPage, index) => {
                         return (
                             <IonItem key={index} className={location.pathname.startsWith(appPage.url) ? 'selected' : ''} routerLink={appPage.url} routerDirection="none" lines="none" detail={false}>
                                 <IonIcon slot="start" icon={appPage.icon} />

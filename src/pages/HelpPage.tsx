@@ -7,48 +7,80 @@ import {
     IonTitle,
     IonToolbar,
     IonSlides,
-    IonSlide} from '@ionic/react';
-import React from 'react';
+    IonSlide,
+    IonButton} from '@ionic/react';
+import React, { useEffect, useRef, useState } from 'react';
 import { getCardDetails, orderedCards } from '../cards';
 import './Page.css';
-import { CardImgAndDetails, CardName, PlayedCardTotals, LVCard } from '../Shared'
+import { CardImgAndDetails, CardName, DiscardedCardTotals, LVCard } from '../Shared'
+import { clientApp } from '../ClientApp';
+import { LVListenerList } from '../UIListeners';
 
-function QuickHelpList(props : {playedCardTotals: PlayedCardTotals})
+type GotoSlideCb = (index : number) => void;
+
+function QuickHelpList(props : {discardedCardTotals: DiscardedCardTotals, gotoSlideCb : GotoSlideCb})
 {
+    function handleClick(index : number)
+    {
+        props.gotoSlideCb(index + 1);
+    }
+
     return <>{
         orderedCards.map((cardType, index) =>
-        <div key={cardType}>
+        <div key={cardType} onClick={() => handleClick(index)}>
             <span className="alignLeft"><CardName card={cardType} /></span>
-            <span className="alignRight">{props.playedCardTotals[index]} / {getCardDetails(cardType).numInDeck}</span>
+            <span className="alignRight">{props.discardedCardTotals[index]} / {getCardDetails(cardType).numInDeck}</span>
             <br />
             <br />
         </div>
     )}</>;
 }
 
-function QuickHelpCard(props : {playedCardTotals: PlayedCardTotals})
+function QuickHelpCard(props : {discardedCardTotals: DiscardedCardTotals, gotoSlideCb : GotoSlideCb})
 {
     return (
         <LVCard>
             <span className="alignLeft">Card (value)</span>
-            <span className="alignRight"># Played / # In Deck</span><br/><br/>
-            <QuickHelpList playedCardTotals={props.playedCardTotals} />
+            <span className="alignRight"># Discarded / # In Deck</span><br/><br/>
+            <QuickHelpList discardedCardTotals={props.discardedCardTotals} gotoSlideCb={props.gotoSlideCb} />
         </LVCard>
     );
 }
 
-function HelpCardItems()
+function HelpCardItems(props : {gotoSlideCb : GotoSlideCb})
 {
+    function handleClick()
+    {
+        props.gotoSlideCb(0);
+    }
+
     return (<>{orderedCards.map((cardType, index) =>
         <IonSlide key={cardType}>
             <LVCard>
                 <CardImgAndDetails card={cardType} />
+                <IonButton onClick={handleClick}>Back</IonButton>
             </LVCard>
         </IonSlide>
     )}</>)
 }
 
 const HelpPage: React.FC = () => {
+    
+    const [discardedCardTotals, setDiscardedCardTotals] = useState<number[]>(clientApp.getUiProperty("discardedCardTotals"));
+    
+    useEffect(() => {
+        var listeners = new LVListenerList("help");
+        listeners.onPropertyChange("discardedCardTotals", function(value : number[]) { setDiscardedCardTotals(value); });
+        return clientApp.effectListeners(listeners);
+    }, []);
+
+    const slidesRef = useRef<HTMLIonSlidesElement>(null);
+
+    const handleGotoSlideCb = function (index : number)
+    {
+        slidesRef.current?.slideTo(index);
+    }
+
     return (
     <IonPage>
         <IonHeader>
@@ -61,11 +93,11 @@ const HelpPage: React.FC = () => {
         </IonHeader>
 
         <IonContent fullscreen>
-        <IonSlides>
+        <IonSlides ref={slidesRef}>
             <IonSlide>
-                <QuickHelpCard playedCardTotals={[1,2,3,4,5,6,7,8]} />
+                <QuickHelpCard discardedCardTotals={discardedCardTotals} gotoSlideCb={handleGotoSlideCb} />
             </IonSlide>
-            <HelpCardItems />
+            <HelpCardItems gotoSlideCb={handleGotoSlideCb}/>
         </IonSlides>
         </IonContent>
     </IonPage>

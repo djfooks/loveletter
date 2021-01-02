@@ -9,8 +9,9 @@ import {
     IonTitle,
     IonToolbar} from '@ionic/react';
 import React, { useEffect, useState } from 'react';
+import Prando from 'prando';
 import { CardType, totalNumberOfCards } from '../cards';
-import { CardName, DotDotDot, LVCard, InteractionCard, PlayerCharacter, PlayerDetails, PlayerState, Token, GameState } from '../Shared';
+import { CardName, DotDotDot, LVCard, InteractionCard, PlayerCharacter, PlayerDetails, PlayerState, GameState } from '../Shared';
 import './Page.css';
 import { chevronDownOutline, chevronUpOutline } from 'ionicons/icons';
 import { clientApp } from '../ClientApp';
@@ -25,22 +26,49 @@ function DiscardList(props : {cards: CardType[]})
         )}</>);
 }
 
-function Tokens(props : {tokens: Token[]})
+function Tokens(props : {wins: number, seed: number})
 {
+    let rng = new Prando(props.seed);
+
+    interface Gem
+    {
+        rotate: number;
+        hueRotate: number;
+        gemId: number;
+    }
+
+    var tokens : Gem[] = [];
+    var i : number;
+    for (i = 0; i < props.wins; i += 1)
+    {
+        tokens.push({ 
+            gemId: rng.nextInt(0, 2),
+            hueRotate: rng.nextInt(0, 359),
+            rotate: rng.nextInt(0, 359)
+        });
+    }
+
     return (
-        <React.Fragment>
+        <>
             {
-                props.tokens.map((gem, index) =>
-                    <img key={index} className="gemImg" style={ {"filter": "hue-rotate(180deg)"} } src="img/gem0.svg" alt="T"/>
+                tokens.map((gem, index) =>
+                    <img key={index} className="gemImg" style={
+                        {
+                            "transform": "rotate(" + gem.rotate + "deg)",
+                            "filter": "hue-rotate(" + gem.hueRotate + "deg)"
+                        } }
+                    src={"img/gem" + gem.gemId + ".svg"}
+                    alt="T"/>
                 )
             }
-        </React.Fragment>
+        </>
     );
 }
 
 interface PlayerLineProps {
-    playerDetails : PlayerDetails;
+    playerDetails: PlayerDetails;
     hasDropdown: boolean;
+    seed: number;
 }
 
 interface PlayerLineState {
@@ -79,7 +107,7 @@ export class PlayerLine extends React.Component<PlayerLineProps, PlayerLineState
                     </span>
                     <span className="playerTopLineRight">
                         <span className="middlerHack"></span>
-                        <Tokens tokens={this.props.playerDetails.tokens} />
+                        <Tokens wins={this.props.playerDetails.wins} seed={this.props.seed} />
                         <span className="gemPadding"></span>
                         {
                             this.props.playerDetails.discarded.length > 0 ?
@@ -102,16 +130,16 @@ export class PlayerLine extends React.Component<PlayerLineProps, PlayerLineState
     }
 }
 
-function PlayersList(props : {playerDetails : PlayerDetails[], turnId : number})
+function PlayersList(props : {playerDetails : PlayerDetails[], turnId : number, roomSeed : number})
 {
     return (<>{props.playerDetails.map((playerDetails, index) =>
         <LVCard key={playerDetails.name} highlight={props.turnId === index}>
-            <PlayerLine playerDetails={playerDetails} hasDropdown={playerDetails.discarded.length > 0} />
+            <PlayerLine playerDetails={playerDetails} hasDropdown={playerDetails.discarded.length > 0} seed={props.roomSeed + 10 * index}/>
         </LVCard>
     )}</>);
 }
 
-function StartGameCard(props : {gameState: GameState, playerId: number})
+function StartGameCard(props : {playerDetails : PlayerDetails[], gameState: GameState, playerId: number})
 {
     function handleStart()
     {
@@ -123,11 +151,53 @@ function StartGameCard(props : {gameState: GameState, playerId: number})
 
     if (props.playerId === 0)
     {
-        return (
-            <InteractionCard>
-                <IonButton onClick={handleStart}>Start Game</IonButton>
-            </InteractionCard>
-        );
+        var i;
+        var allPicked = true;
+        for (i = 0; i < props.playerDetails.length; i += 1)
+        {
+            if (props.playerDetails[i].characterId === -1)
+            {
+                allPicked = false;
+                break;
+            }
+        }
+        if (allPicked)
+        {
+            if (props.playerDetails.length > 1)
+            {
+                return (
+                    <InteractionCard>
+                        <IonButton onClick={handleStart}>Start Game</IonButton>
+                    </InteractionCard>
+                );
+            }
+            else
+            {
+                return (
+                    <InteractionCard>
+                        <div className="interactionText">
+                            Waiting for more players
+                        </div>
+                        <div className="interactionDots">
+                            <DotDotDot />
+                        </div>
+                    </InteractionCard>
+                );
+            }
+        }
+        else
+        {
+            return (
+                <InteractionCard>
+                    <div className="interactionText">
+                        Waiting players to pick character
+                    </div>
+                    <div className="interactionDots">
+                        <DotDotDot />
+                    </div>
+                </InteractionCard>
+            );
+        }
     }
     else
     {
@@ -183,6 +253,7 @@ const GamePage: React.FC = () => {
     const [playerDetails, setPlayerDetails] = useState<PlayerDetails[]>(clientApp.getUiProperty("playerDetails"));
     const [discardedCardTotals, setDiscardedCardTotals] = useState<number[]>(clientApp.getUiProperty("discardedCardTotals"));
     const [gameState, setGameState] = useState<GameState>(clientApp.getUiProperty("gameState"));
+    const [roomSeed, setRoomSeed] = useState<number>(clientApp.getUiProperty("roomSeed"));
     const [playerId, setPlayerId] = useState<number>(clientApp.getUiProperty("playerId"));
     const [turnId, setTurnId] = useState<number>(clientApp.getUiProperty("turnId"));
     
@@ -191,6 +262,7 @@ const GamePage: React.FC = () => {
         listeners.onPropertyChange("playerDetails", function(value : PlayerDetails[]) { setPlayerDetails(value); });
         listeners.onPropertyChange("discardedCardTotals", function(value : number[]) { setDiscardedCardTotals(value); });
         listeners.onPropertyChange("gameState", function(value : GameState) { setGameState(value); });
+        listeners.onPropertyChange("roomSeed", function(value : number) { setRoomSeed(value); });
         listeners.onPropertyChange("playerId", function(value : number) { setPlayerId(value); });
         listeners.onPropertyChange("turnId", function(value : number) { setTurnId(value); });
         return clientApp.effectListeners(listeners);
@@ -208,8 +280,8 @@ const GamePage: React.FC = () => {
                 </IonToolbar>
             </IonHeader>
             <TopLine discardedCardTotals={discardedCardTotals} playerDetails={playerDetails} />
-            <PlayersList playerDetails={playerDetails} turnId={turnId} />
-            <StartGameCard gameState={gameState} playerId={playerId} />
+            <PlayersList playerDetails={playerDetails} turnId={turnId} roomSeed={roomSeed} />
+            <StartGameCard playerDetails={playerDetails} gameState={gameState} playerId={playerId} />
         </IonContent>
     </IonPage>
     );

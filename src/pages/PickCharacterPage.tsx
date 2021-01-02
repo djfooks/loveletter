@@ -69,6 +69,10 @@ const PickCharacterPage: React.FC = () => {
     function handleCharacterClick(characterId : number)
     {
         setSelectedCharacterId(characterId);
+        if (pickedCharacterId !== -1 && characterId !== pickedCharacterId)
+        {
+            clientApp.clearPickedCharacter();
+        }
     }
 
     return (
