@@ -26,7 +26,7 @@ function DiscardList(props : {cards: CardType[]})
         )}</>);
 }
 
-function Tokens(props : {wins: number, seed: number})
+export function Tokens(props : {wins: number, seed: number})
 {
     let rng = new Prando(props.seed);
 
@@ -214,8 +214,15 @@ function StartGameCard(props : {playerDetails : PlayerDetails[], gameState: Game
     }
 }
 
-function TopLine(props : {discardedCardTotals : number[], playerDetails: PlayerDetails[]})
+function TopLine(props : {discardedCardTotals : number[], playerDetails: PlayerDetails[], gameState: GameState, roomCode: string})
 {
+    if (props.gameState === "LOGIN")
+    {
+        return (
+            <InteractionCard>Room code {props.roomCode}</InteractionCard>
+        );
+    }
+
     var i;
     var totalDiscards = 0;
     for (i = 0; i < props.discardedCardTotals.length; i += 1)
@@ -254,11 +261,13 @@ const GamePage: React.FC = () => {
     const [discardedCardTotals, setDiscardedCardTotals] = useState<number[]>(clientApp.getUiProperty("discardedCardTotals"));
     const [gameState, setGameState] = useState<GameState>(clientApp.getUiProperty("gameState"));
     const [roomSeed, setRoomSeed] = useState<number>(clientApp.getUiProperty("roomSeed"));
+    const [room, setRoom] = useState<string>(clientApp.getUiProperty("roomcode"));
     const [playerId, setPlayerId] = useState<number>(clientApp.getUiProperty("playerId"));
     const [turnId, setTurnId] = useState<number>(clientApp.getUiProperty("turnId"));
     
     useEffect(() => {
         var listeners = new LVListenerList("game");
+        listeners.onPropertyChange("roomcode", (value : string) => { setRoom(value); });
         listeners.onPropertyChange("playerDetails", function(value : PlayerDetails[]) { setPlayerDetails(value); });
         listeners.onPropertyChange("discardedCardTotals", function(value : number[]) { setDiscardedCardTotals(value); });
         listeners.onPropertyChange("gameState", function(value : GameState) { setGameState(value); });
@@ -279,7 +288,7 @@ const GamePage: React.FC = () => {
                     <IonTitle></IonTitle>
                 </IonToolbar>
             </IonHeader>
-            <TopLine discardedCardTotals={discardedCardTotals} playerDetails={playerDetails} />
+            <TopLine discardedCardTotals={discardedCardTotals} playerDetails={playerDetails} gameState={gameState} roomCode={room} />
             <PlayersList playerDetails={playerDetails} turnId={turnId} roomSeed={roomSeed} />
             <StartGameCard playerDetails={playerDetails} gameState={gameState} playerId={playerId} />
         </IonContent>
